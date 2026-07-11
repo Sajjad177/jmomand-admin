@@ -201,12 +201,12 @@ export default function AddInventory() {
     e.preventDefault();
 
     if (!images.length) {
-      alert("Please upload at least one product image");
+      toast.error("Please upload at least one product image");
       return;
     }
 
     if (!condition) {
-      alert("Please select a product condition");
+      toast.error("Please select a product condition");
       return;
     }
 
@@ -273,14 +273,14 @@ export default function AddInventory() {
                     <SelectTrigger className="rounded-lg w-full border-slate-200">
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
-                    <SelectContent className="z-[100]">
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="open_box">Open Box</SelectItem>
-                      <SelectItem value="like_new">Like New</SelectItem>
-                      <SelectItem value="used">Used</SelectItem>
-                      <SelectItem value="damaged">Damaged</SelectItem>
-                      <SelectItem value="for_parts">For Parts</SelectItem>
-                    </SelectContent>
+                    <SelectContent className="z-[100]">                                       
+                      <SelectItem value="new">New</SelectItem>                  
+                      <SelectItem value="open_box">Open Box</SelectItem>               
+                      <SelectItem value="like_new">Like New</SelectItem>                
+                      <SelectItem value="used">Used</SelectItem>                
+                      <SelectItem value="damaged">Damaged</SelectItem>   
+                      <SelectItem value="for_parts">For Parts</SelectItem>                   
+                    </SelectContent>                                                                      
                   </Select>
                 </div>
 

@@ -1,10 +1,9 @@
-import { ComingSoonPage } from "@/components/layout/coming-soon-page";
+import Settings from "./_components/SettingsPage";
 
 export default function SettingsPage() {
   return (
-    <ComingSoonPage
-      title="Settings"
-      description="Configure admin preferences, permissions, notification rules, and dashboard controls from this section."
-    />
+   <div>
+    <Settings/>
+   </div>
   );
 }
