@@ -1,10 +1,9 @@
-import { ComingSoonPage } from "@/components/layout/coming-soon-page";
+import ListOfauoction from "./_components/Listoff-auoction";
 
 export default function AuctionsPage() {
   return (
-    <ComingSoonPage
-      title="Auctions"
-      description="Create live auctions, track bids, schedule auction windows, and close winning orders from this section."
-    />
+   <div>
+    <ListOfauoction/>
+   </div>
   );
 }

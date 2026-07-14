@@ -35,6 +35,7 @@ type ImagePreview = {
 
 export default function AddInventory() {
   const imageInputId = useId();
+  const categoryImageInputId = useId();
   const imagesRef = useRef<ImagePreview[]>([]);
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
@@ -43,6 +44,8 @@ export default function AddInventory() {
   const [productName, setProductName] = useState("");
   const [condition, setCondition] = useState("");
   const [category, setCategory] = useState("");
+  const [categoryImage, setCategoryImage] = useState<ImagePreview | null>(null);
+  
   const [manufacturer, setManufacturer] = useState("");
   const [description, setDescription] = useState("");
   const [detailDescription, setDetailDescription] = useState("");
@@ -67,8 +70,11 @@ export default function AddInventory() {
   useEffect(() => {
     return () => {
       imagesRef.current.forEach((image) => URL.revokeObjectURL(image.url));
+      if (categoryImage) {
+        URL.revokeObjectURL(categoryImage.url);
+      }
     };
-  }, []);
+  }, [categoryImage]);
 
   // Color Array handlers
   const handleColorChange = (index: number, value: string) => {
@@ -86,6 +92,38 @@ export default function AddInventory() {
       setColors(colors.filter((_, i) => i !== index));
     } else {
       setColors([""]); 
+    }
+  };
+
+  // Category Image Upload Handler
+  const handleCategoryImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    
+    if (file) {
+      // Clean up previous category image if exists
+      if (categoryImage) {
+        URL.revokeObjectURL(categoryImage.url);
+      }
+
+      const preview: ImagePreview = {
+        id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
+        url: URL.createObjectURL(file),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file,
+      };
+
+      setCategoryImage(preview);
+    }
+
+    e.target.value = "";
+  };
+
+  const removeCategoryImage = () => {
+    if (categoryImage) {
+      URL.revokeObjectURL(categoryImage.url);
+      setCategoryImage(null);
     }
   };
 
@@ -179,6 +217,7 @@ export default function AddInventory() {
       setProductName("");
       setCondition("");
       setCategory("");
+      setCategoryImage(null);
       setManufacturer("");
       setDescription("");
       setDetailDescription("");
@@ -210,12 +249,20 @@ export default function AddInventory() {
       return;
     }
 
+    if (!categoryImage) {
+      toast.error("Please upload a category image");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", productName);
     formData.append("description", description);
     formData.append("category", category);
     formData.append("condition", condition);
     formData.append("type", type);
+    
+    // Append category image
+    formData.append("categoryImage", categoryImage.file);
 
     colors
       .filter((color) => color.trim() !== "")
@@ -322,6 +369,47 @@ export default function AddInventory() {
                 </div>
               </div>
 
+              {/* Category Image Upload */}
+              <div className="space-y-2">
+                <Label className="text-[#004242] text-xs font-medium">Category Image *</Label>
+                <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50/80 transition relative cursor-pointer group">
+                  <input
+                    id={categoryImageInputId}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCategoryImageUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  <label htmlFor={categoryImageInputId} className="flex flex-col items-center justify-center cursor-pointer w-full">
+                    {categoryImage ? (
+                      <div className="relative w-full">
+                        <img 
+                          src={categoryImage.url} 
+                          alt={categoryImage.name} 
+                          className="w-full h-32 object-contain rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeCategoryImage();
+                          }}
+                          className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-slate-600 hover:text-red-500 rounded-full p-1 shadow transition"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-8 h-8 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
+                        <span className="text-sm font-medium text-slate-700">Click to upload category image</span>
+                        <span className="text-xs text-slate-400 mt-1">PNG, JPG up to 10MB</span>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+
               {/* Dynamic Conditional Pricing / Quantity Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {type === "for_sale" ? (
@@ -351,7 +439,7 @@ export default function AddInventory() {
                   </>
                 ) : (
                   <>
-                    {/* <div className="space-y-2">
+                    <div className="space-y-2">
                       <Label className="text-amber-700 text-xs font-bold">Auction Day *</Label>
                       <Input
                         placeholder="e.g. Monday"
@@ -360,7 +448,7 @@ export default function AddInventory() {
                         className="rounded-lg border-amber-300 focus-visible:ring-amber-400 bg-amber-50/10"
                         required={type === "for_auction"}
                       />
-                    </div> */}
+                    </div>
                     <div className="space-y-2">
                       <Label className="text-amber-700 text-xs font-bold">Reserve Price ($) *</Label>
                       <Input
@@ -505,13 +593,28 @@ export default function AddInventory() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sticky top-6 h-fit space-y-6">
           <h3 className="font-bold text-slate-800 text-md">Live Preview</h3>
           
+          {/* Category Image Preview */}
+          <div className="space-y-2">
+            <span className="text-xs text-slate-400">Category Image</span>
+            <div className="aspect-[4/3] bg-slate-50 border border-slate-100 rounded-lg flex flex-col items-center justify-center overflow-hidden p-2 relative">
+              {categoryImage ? (
+                <img src={categoryImage.url} alt={categoryImage.name} className="w-full h-full object-contain" />
+              ) : (
+                <p className="text-xs text-slate-400">No category image</p>
+              )}
+            </div>
+          </div>
+
           {/* Main Top Image Preview */}
-          <div className="aspect-[4/3] bg-slate-50 border border-slate-100 rounded-lg flex flex-col items-center justify-center overflow-hidden p-2 relative">
-            {images.length > 0 ? (
-              <img src={images[0].url} alt={images[0].name} className="w-full h-full object-contain" />
-            ) : (
-              <p className="text-xs text-slate-400">No images chosen</p>
-            )}
+          <div className="space-y-2">
+            <span className="text-xs text-slate-400">Product Images</span>
+            <div className="aspect-[4/3] bg-slate-50 border border-slate-100 rounded-lg flex flex-col items-center justify-center overflow-hidden p-2 relative">
+              {images.length > 0 ? (
+                <img src={images[0].url} alt={images[0].name} className="w-full h-full object-contain" />
+              ) : (
+                <p className="text-xs text-slate-400">No images chosen</p>
+              )}
+            </div>
           </div>
 
           {/* Key Value Side Parameters View */}

@@ -2,6 +2,7 @@
 import "./globals.css";
 import MainProviders from "@/app/provider/MainProviders";
 import Provider from "@/app/provider/Provider";
+import { Toaster } from "sonner";
 
 
 
@@ -15,6 +16,7 @@ export default function RootLayout({
       <body className={` antialiased`}>
         <MainProviders>
           <Provider>{children}</Provider>
+          <Toaster/>
         </MainProviders>
       </body>
     </html>
