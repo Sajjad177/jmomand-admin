@@ -26,6 +26,7 @@ interface InventoryItem {
   title: string;
   category: string;
   condition: string;
+  type: string;
   quantity: number;
 }
 
@@ -219,6 +220,7 @@ export default function ProductDashboard() {
               <th className="py-3 px-4">Product Name</th>
               <th className="py-3 px-4">Category</th>
               <th className="py-3 px-4">Condition</th>
+              <th className="py-3 px-4">Type</th>
               <th className="py-3 px-4">Quantity</th>
               <th className="py-3 px-6 text-center rounded-r-lg">Action</th>
             </tr>
@@ -268,14 +270,17 @@ export default function ProductDashboard() {
                   <td className="py-4 px-4 whitespace-nowrap">
                     <div className="flex items-center gap-2 text-sm text-gray-700 font-medium capitalize">
                       <span
-                        className={`w-2 h-2 rounded-full ${
-                          product.condition.toLowerCase() === "new"
+                        className={`w-2 h-2 rounded-full ${product.condition.toLowerCase() === "new"
                             ? "bg-[#10B981]"
                             : "bg-[#F97316]"
-                        }`}
+                          }`}
                       />
                       {product.condition.replace("_", " ")}
                     </div>
+                  </td>
+
+                  <td className="py-4 px-4 text-sm text-gray-600 font-medium whitespace-nowrap">
+                    {product.type === "for_auction" ? "Auction" : "Sale"}
                   </td>
 
                   {/* Quantity */}
@@ -348,11 +353,10 @@ export default function ProductDashboard() {
                 <button
                   key={pageNumber}
                   onClick={() => handlePageChange(pageNumber)}
-                  className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-md transition-colors ${
-                    page === pageNumber
+                  className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-md transition-colors ${page === pageNumber
                       ? "bg-[#D9E4F7] text-[#2563EB]"
                       : "text-gray-500 border border-gray-200 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   {pageNumber}
                 </button>
