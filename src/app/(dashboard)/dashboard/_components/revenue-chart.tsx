@@ -2,24 +2,7 @@
 
 import React, { useState } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-
-const dummyData = {
-  week: [
-    { name: "Sun", revenue: 15000 },
-    { name: "Mon", revenue: 28000 },
-    { name: "Tue", revenue: 40000 }, 
-    { name: "Wed", revenue: 22000 },
-    { name: "Thu", revenue: 32000 },
-    { name: "Fri", revenue: 22000 },
-    { name: "Sat", revenue: 38000 },
-  ],
-  month: [
-    { name: "Week 1", revenue: 45000 },
-    { name: "Week 2", revenue: 28000 },
-    { name: "Week 3", revenue: 55000 },
-    { name: "Week 4", revenue: 38000 },
-  ],
-}
+import { useDashboardReports } from "@/features/dashboard/use-dashboard-reports"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload }: any) => {
@@ -27,8 +10,8 @@ const CustomTooltip = ({ active, payload }: any) => {
     return (
       <div className="flex flex-col items-center justify-center mb-1">
         <div className="bg-[#f95d2c] text-white text-[11px] font-medium px-3 py-1.5 rounded-lg shadow-md text-center border border-orange-400">
-          <p className="opacity-90 text-[10px]">Thursday</p>
-          <p className="font-bold">{(payload[0].value / 1000).toFixed(0)}k</p>
+          <p className="opacity-90 text-[10px]">Revenue</p>
+          <p className="font-bold">${Number(payload[0].value).toLocaleString()}</p>
         </div>
         <div className="w-2.5 h-2.5 bg-white border-2 border-[#f95d2c] rounded-full mt-1 shadow-sm" />
       </div>
@@ -39,6 +22,16 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export default function RevenueChart() {
   const [timeframe, setTimeframe] = useState<"week" | "month">("week")
+  const end = new Date();
+  const start = new Date(end);
+  start.setDate(end.getDate() - (timeframe === "week" ? 7 : 30));
+  const reports = useDashboardReports(start.toISOString(), end.toISOString());
+  const chartData = [
+    {
+      name: timeframe === "week" ? "Last 7 days" : "Last 30 days",
+      revenue: reports.data?.revenue.totalRevenue ?? 0,
+    },
+  ];
 
   return (
     <div className="w-full bg-white rounded-xl py-8 px-3 shadow-[0_2px_8px_rgba(0,0,0,0.02)] ">
@@ -73,7 +66,7 @@ export default function RevenueChart() {
       <div className="h-[240px] w-full mt-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={dummyData[timeframe]}
+            data={chartData}
             margin={{ top: 35, right: 10, left: -20, bottom: 0 }}
           >
             <defs>
@@ -96,9 +89,8 @@ export default function RevenueChart() {
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#94a3b8", fontSize: 12 }}
-              domain={[0, 50000]}
-              ticks={[0, 10000, 20000, 30000, 40000, 50000]}
-              tickFormatter={(value) => (value === 0 ? "0k" : `${value / 1000}k`)}
+              domain={[0, "auto"]}
+              tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
             />
 
             <Tooltip

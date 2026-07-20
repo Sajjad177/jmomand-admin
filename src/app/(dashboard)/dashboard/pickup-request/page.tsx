@@ -1,10 +1,5 @@
-import { ComingSoonPage } from "@/components/layout/coming-soon-page";
+import PickupRequests from "./_components/pickup-requests";
 
 export default function PickupRequestPage() {
-  return (
-    <ComingSoonPage
-      title="Pickup Request"
-      description="Review pickup requests, assign pickup status, and coordinate collection workflows from this section."
-    />
-  );
+  return <PickupRequests />;
 }

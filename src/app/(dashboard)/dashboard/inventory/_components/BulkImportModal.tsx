@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner"; 
 import { FiUploadCloud, FiX, FiFileText } from "react-icons/fi";
 import { LuDownload } from "react-icons/lu";
@@ -38,6 +38,7 @@ export default function BulkImportModal({
   onClose,
   token,
 }: BulkImportModalProps) {
+  const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [previewItems, setPreviewItems] = useState<ParsedProduct[]>([]);
@@ -73,8 +74,10 @@ export default function BulkImportModal({
 
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success(data.message || "Bulk products imported successfully!");
+      await queryClient.invalidateQueries({ queryKey: ["inventoryData"] });
+      await queryClient.invalidateQueries({ queryKey: ["auctionData"] });
       handleRemoveFile();
       onClose(); 
     },

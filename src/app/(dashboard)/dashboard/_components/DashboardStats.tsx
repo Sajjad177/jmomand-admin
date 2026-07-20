@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react"
+import { useDashboardReports } from "@/features/dashboard/use-dashboard-reports"
 
 interface StatCardProps {
   title: string
@@ -53,29 +56,50 @@ const StatCard = ({
   )
 }
 
+const numberFormatter = new Intl.NumberFormat("en-US");
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+function getCount(rows: Array<{ _id: string; count: number }> | undefined, status: string) {
+  return rows?.find((row) => row._id === status)?.count ?? 0;
+}
+
+function getAppointmentCount(
+  rows: Array<{ _id: string; appointments: number }> | undefined,
+  status: string,
+) {
+  return rows?.find((row) => row._id === status)?.appointments ?? 0;
+}
+
 export default function DashboardStats() {
+  const reports = useDashboardReports();
+  const data = reports.data;
+  const loadingValue = reports.isLoading ? "..." : undefined;
+
   return (
     <div className="w-full ">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Card 1: Live Auctions */}
         <StatCard
           title="Live Auctions"
-          value="350K"
-          comparisonValue="200K"
+          value={loadingValue ?? numberFormatter.format(getCount(data?.auctions.byStatus, "active"))}
+          timeframeText="Current status"
         />
 
         {/* Card 2: Won Orders */}
         <StatCard
-          title="Won Orders"
-          value="10K"
-          comparisonValue="7k"
+          title="Paid Invoices"
+          value={loadingValue ?? numberFormatter.format(data?.revenue.paidInvoices ?? 0)}
+          timeframeText="All time"
         />
 
         {/* Card 3: Total Revenue */}
         <StatCard
           title="Total Revenue"
-          value="651K"
-          comparisonValue="250K"
+          value={loadingValue ?? currencyFormatter.format(data?.revenue.totalRevenue ?? 0)}
+          timeframeText="All time"
         />
 
         {/* Card 4: Split Auctions Layout */}
@@ -87,7 +111,7 @@ export default function DashboardStats() {
                 Scheduled
               </p>
               <span className="text-[26px] font-bold text-[#063339]">
-                509
+                {loadingValue ?? numberFormatter.format(getAppointmentCount(data?.pickups.byStatus, "scheduled"))}
               </span>
             </div>
 
@@ -100,12 +124,17 @@ export default function DashboardStats() {
                 Closed
               </p>
               <span className="text-[26px] font-bold text-red-500">
-                94
+                {loadingValue ?? numberFormatter.format(getCount(data?.auctions.byStatus, "ended"))}
               </span>
             </div>
           </div>
         </StatCard>
       </div>
+      {reports.isError ? (
+        <p className="mt-3 text-xs font-medium text-red-500">
+          Dashboard metrics could not be loaded. Please refresh to try again.
+        </p>
+      ) : null}
     </div>
   )
 }

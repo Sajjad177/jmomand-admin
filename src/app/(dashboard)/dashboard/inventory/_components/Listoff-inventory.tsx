@@ -98,7 +98,7 @@ export default function ProductDashboard() {
   };
 
   const deleteMutation = useMutation({
-    mutationKey: ["publishAuction"],
+    mutationKey: ["deleteProduct"],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: async (payload: any) => {
       if (!token) {
@@ -119,15 +119,15 @@ export default function ProductDashboard() {
       const result = await response.json();
 
       if (!response.ok || result.success === false) {
-        throw new Error(result.message || "Failed to publish auction");
+        throw new Error(result.message || "Failed to delete product");
       }
 
       return result;
     },
     onSuccess: async (data) => {
-      toast.success(data.message || "Auction deleted successfully!");
+      toast.success(data.message || "Product deleted successfully!");
       await queryClient.invalidateQueries({
-        queryKey: ["auctionData"],
+        queryKey: ["inventoryData"],
       });
     },
     onError: (error: Error) => {

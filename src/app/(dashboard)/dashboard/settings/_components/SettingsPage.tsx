@@ -35,6 +35,13 @@ interface ChangePasswordPayload {
   newPassword: string;
 }
 
+interface PlatformSettings {
+  pickupGraceDays: number;
+  storageFeePerDay: number;
+  forfeitureDays: number;
+  pickupInstructions?: string;
+}
+
 export default function Settings() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
@@ -57,6 +64,12 @@ export default function Settings() {
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
+  });
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
+    pickupGraceDays: 7,
+    storageFeePerDay: 0,
+    forfeitureDays: 30,
+    pickupInstructions: "",
   });
 
   // Fetch user profile
@@ -91,6 +104,22 @@ export default function Settings() {
     enabled: !!token,
   });
 
+  const settingsQuery = useQuery({
+    queryKey: ["platformSettings"],
+    queryFn: async () => {
+      if (!token) throw new Error("Please login again");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/settings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json();
+      if (!response.ok || result.success === false) {
+        throw new Error(result.message || "Failed to fetch platform settings");
+      }
+      return result.data as PlatformSettings;
+    },
+    enabled: Boolean(token),
+  });
+
   // Set form data when user data is loaded
   useEffect(() => {
     if (userData) {
@@ -107,6 +136,10 @@ export default function Settings() {
       }
     }
   }, [userData]);
+
+  useEffect(() => {
+    if (settingsQuery.data) setPlatformSettings(settingsQuery.data);
+  }, [settingsQuery.data]);
 
   // Handle image selection
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -230,6 +263,31 @@ export default function Settings() {
     onError: (error: Error) => {
       toast.error(error.message || "Failed to change password");
     },
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationKey: ["updatePlatformSettings"],
+    mutationFn: async (payload: PlatformSettings) => {
+      if (!token) throw new Error("Please login again");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/settings`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok || result.success === false) {
+        throw new Error(result.message || "Failed to save platform settings");
+      }
+      return result;
+    },
+    onSuccess: async (result) => {
+      toast.success(result.message || "Platform settings saved successfully");
+      await queryClient.invalidateQueries({ queryKey: ["platformSettings"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   // Handle profile update
@@ -561,6 +619,76 @@ export default function Settings() {
                 {changePasswordMutation.isPending
                   ? "Updating..."
                   : "Update Password"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-white border-[#eef2f6] py-4 shadow-sm rounded-xl overflow-hidden">
+        <CardContent className="p-6">
+          <h3 className="text-xl font-bold text-slate-900 mb-6">Platform Pickup Settings</h3>
+          {settingsQuery.isError ? (
+            <p className="mb-5 text-sm text-red-600">Unable to load platform settings.</p>
+          ) : null}
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (platformSettings.forfeitureDays <= platformSettings.pickupGraceDays) {
+                toast.error("Forfeiture days must be greater than pickup grace days");
+                return;
+              }
+              updateSettingsMutation.mutate(platformSettings);
+            }}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+              {([
+                ["pickupGraceDays", "Pickup Grace Days"],
+                ["storageFeePerDay", "Storage Fee Per Day ($)"],
+                ["forfeitureDays", "Forfeiture Days"],
+              ] as const).map(([key, label]) => (
+                <div key={key}>
+                  <label className="mb-2 block text-[15px] font-semibold text-slate-800">{label}</label>
+                  <Input
+                    type="number"
+                    min={key === "forfeitureDays" ? 1 : 0}
+                    step={key === "storageFeePerDay" ? "0.01" : "1"}
+                    value={platformSettings[key]}
+                    onChange={(event) =>
+                      setPlatformSettings((current) => ({
+                        ...current,
+                        [key]: Number(event.target.value),
+                      }))
+                    }
+                    className="h-11 rounded-lg border-slate-200 focus-visible:ring-[#ff5e1a]"
+                    required
+                  />
+                </div>
+              ))}
+            </div>
+            <div>
+              <label className="mb-2 block text-[15px] font-semibold text-slate-800">Pickup Instructions</label>
+              <textarea
+                rows={4}
+                value={platformSettings.pickupInstructions || ""}
+                onChange={(event) =>
+                  setPlatformSettings((current) => ({
+                    ...current,
+                    pickupInstructions: event.target.value,
+                  }))
+                }
+                className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#ff5e1a] focus:ring-2 focus:ring-orange-500/20"
+                placeholder="Instructions shown to customers when scheduling pickup"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={settingsQuery.isLoading || updateSettingsMutation.isPending}
+                className="bg-[#ff5e1a] px-6 text-white hover:bg-[#e04f13]"
+              >
+                {updateSettingsMutation.isPending ? "Saving..." : "Save Platform Settings"}
               </Button>
             </div>
           </form>

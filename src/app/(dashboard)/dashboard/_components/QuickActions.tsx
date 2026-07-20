@@ -2,13 +2,12 @@
 import React from "react";
 import { Plus, Gavel, MapPin } from "lucide-react";
 import AddCategoryModal from "./AddCategoryModal";
-import AddInventoryModal from "./AddInventoryModal";
+import { useRouter } from "next/navigation";
 
 export default function QuickActions() {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] =
     React.useState(false);
-  const [isAddInventoryModalOpen, setIsAddInventoryModalOpen] =
-    React.useState(false);
+  const router = useRouter();
 
   return (
     <div className="w-full bg-white rounded-xl border border-slate-100 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
@@ -19,7 +18,7 @@ export default function QuickActions() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Add Inventory */}
         <button
-          onClick={() => setIsAddInventoryModalOpen(true)}
+          onClick={() => router.push("/dashboard/inventory/add")}
           className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group"
         >
           <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center mb-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-transform duration-200 group-hover:scale-105">
@@ -29,11 +28,6 @@ export default function QuickActions() {
             Add Inventory
           </span>
         </button>
-
-        <AddInventoryModal
-          isOpen={isAddInventoryModalOpen}
-          onClose={() => setIsAddInventoryModalOpen(false)}
-        />
 
         {/* Add Category */}
         <button
@@ -61,7 +55,7 @@ export default function QuickActions() {
         />
 
         {/* Add Auctions */}
-        <button className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group">
+        <button onClick={() => router.push("/dashboard/auctions")} className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group">
           <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mb-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-transform duration-200 group-hover:scale-105">
             <Gavel className="w-5 h-5 text-amber-700" />
           </div>
@@ -71,7 +65,7 @@ export default function QuickActions() {
         </button>
 
         {/* Pickup Request */}
-        <button className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group">
+        <button onClick={() => router.push("/dashboard/pickup-request")} className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group">
           <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mb-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-transform duration-200 group-hover:scale-105">
             <MapPin className="w-5 h-5 text-rose-500 fill-rose-100" />
           </div>

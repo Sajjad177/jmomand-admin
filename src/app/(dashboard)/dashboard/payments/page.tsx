@@ -1,10 +1,9 @@
-import { ComingSoonPage } from "@/components/layout/coming-soon-page";
+import PaymentsList from "./_components/payments-list";
 
 export default function PaymentsPage() {
   return (
-    <ComingSoonPage
-      title="Payments"
-      description="Monitor successful payments, pending settlements, refunds, and revenue reconciliation from this section."
-    />
+    <div className="mx-auto w-full py-1">
+      <PaymentsList />
+    </div>
   );
 }
