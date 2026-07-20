@@ -17,6 +17,7 @@ import {
   TokenResponse,
   writePasswordResetToken,
 } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const OTP_LENGTH = 6;
 
@@ -25,6 +26,7 @@ export default function OtpVerificationCard() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
@@ -32,6 +34,15 @@ export default function OtpVerificationCard() {
       router.replace("/forgot-password");
     }
   }, [router]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setInterval(
+      () => setCooldown((value) => Math.max(0, value - 1)),
+      1000,
+    );
+    return () => window.clearInterval(timer);
+  }, [cooldown]);
 
   const digits = Array.from({ length: OTP_LENGTH }, (_, index) => code[index] || "");
 
@@ -94,6 +105,20 @@ export default function OtpVerificationCard() {
     }
   };
 
+  const onResend = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await authPost("/auth/resend-forgot-otp", {}, readPasswordResetToken());
+      setCooldown(60);
+      toast.success("A new verification code has been sent.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not resend code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f4f7f9] p-4">
       <div className="w-full max-w-[540px] rounded-xl border border-slate-100 bg-white p-10 shadow-sm">
@@ -142,6 +167,15 @@ export default function OtpVerificationCard() {
           >
             {loading ? "Verifying..." : "Verify code"}
           </Button>
+
+          <button
+            type="button"
+            disabled={loading || cooldown > 0}
+            onClick={onResend}
+            className="w-full text-sm font-medium text-orange-600 disabled:text-slate-400"
+          >
+            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+          </button>
 
           <div className="text-center">
             <Link

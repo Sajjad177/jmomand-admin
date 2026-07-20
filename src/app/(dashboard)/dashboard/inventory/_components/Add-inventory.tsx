@@ -2,8 +2,9 @@
 
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Plus, X, UploadCloud, Bold, Italic, List, Link2 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,8 @@ export default function AddInventory() {
   const imagesRef = useRef<ImagePreview[]>([]);
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
   // Form States
   const [productName, setProductName] = useState("");
@@ -212,8 +215,8 @@ export default function AddInventory() {
 
       return data;
     },
-    onSuccess: (data) => {
-      alert(data.message || "Product created successfully");
+    onSuccess: async (data) => {
+      toast.success(data.message || "Product created successfully");
       setProductName("");
       setCondition("");
       setCategory("");
@@ -229,6 +232,9 @@ export default function AddInventory() {
       setColors([""]);
       images.forEach((image) => URL.revokeObjectURL(image.url));
       setImages([]);
+      await queryClient.invalidateQueries({ queryKey: ["inventoryData"] });
+      await queryClient.invalidateQueries({ queryKey: ["auctionData"] });
+      router.push("/dashboard/inventory");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to create product");
@@ -327,6 +333,10 @@ export default function AddInventory() {
                       <SelectItem value="used">Used</SelectItem>                
                       <SelectItem value="damaged">Damaged</SelectItem>   
                       <SelectItem value="for_parts">For Parts</SelectItem>                   
+                      <SelectItem value="brand_new">Brand New</SelectItem>
+                      <SelectItem value="like_new_open_box">Like New Open Box</SelectItem>
+                      <SelectItem value="scratch_and_dent">Scratch &amp; Dent</SelectItem>
+                      <SelectItem value="salvage">Salvage</SelectItem>
                     </SelectContent>                                                                      
                   </Select>
                 </div>

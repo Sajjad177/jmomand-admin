@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Headphones, ArrowLeft, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -19,6 +19,7 @@ export default function AuctionPublishAddPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
+  const queryClient = useQueryClient();
 
   const [selectedProducts, setSelectedProducts] = useState<
     SelectedAuctionProduct[]
@@ -81,8 +82,11 @@ export default function AuctionPublishAddPage() {
 
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success(data.message || "Auction published successfully!");
+      await queryClient.invalidateQueries({ queryKey: ["auctionData"] });
+      await queryClient.invalidateQueries({ queryKey: ["inventoryData"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboardReports"] });
       localStorage.removeItem("selected_auction_products");
       router.push("/dashboard/auctions");
     },

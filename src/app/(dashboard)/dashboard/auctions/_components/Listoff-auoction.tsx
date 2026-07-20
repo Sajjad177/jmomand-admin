@@ -145,13 +145,13 @@ export default function ListOfauoction() {
       const result = await response.json();
 
       if (!response.ok || result.success === false) {
-        throw new Error(result.message || "Failed to publish auction");
+        throw new Error(result.message || "Failed to delete product");
       }
 
       return result;
     },
     onSuccess: async (data) => {
-      toast.success(data.message || "Auction deleted successfully!");
+      toast.success(data.message || "Product deleted successfully!");
       await queryClient.invalidateQueries({
         queryKey: ["auctionData"],
       });
