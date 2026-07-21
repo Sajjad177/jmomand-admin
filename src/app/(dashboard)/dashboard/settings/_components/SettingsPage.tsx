@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import { Pencil, Copy, Check, Camera, X } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { useSession } from "next-auth/react";
+import React, { useState, useEffect, useRef } from 'react';
+import { Pencil, Copy, Check, Camera, X } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface UserProfile {
   _id: string;
@@ -47,29 +47,29 @@ export default function Settings() {
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
 
   // Form states
   const [personalInfo, setPersonalInfo] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
   });
 
   const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
   });
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     pickupGraceDays: 7,
     storageFeePerDay: 0,
     forfeitureDays: 30,
-    pickupInstructions: "",
+    pickupInstructions: '',
   });
 
   // Fetch user profile
@@ -78,25 +78,22 @@ export default function Settings() {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["userProfile"],
+    queryKey: ['userProfile'],
     queryFn: async () => {
       if (!token) {
-        throw new Error("Please login again");
+        throw new Error('Please login again');
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       const result = await response.json();
 
       if (!response.ok || result.success === false) {
-        throw new Error(result.message || "Failed to fetch profile");
+        throw new Error(result.message || 'Failed to fetch profile');
       }
 
       return result.data as UserProfile;
@@ -105,15 +102,15 @@ export default function Settings() {
   });
 
   const settingsQuery = useQuery({
-    queryKey: ["platformSettings"],
+    queryKey: ['platformSettings'],
     queryFn: async () => {
-      if (!token) throw new Error("Please login again");
+      if (!token) throw new Error('Please login again');
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/settings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (!response.ok || result.success === false) {
-        throw new Error(result.message || "Failed to fetch platform settings");
+        throw new Error(result.message || 'Failed to fetch platform settings');
       }
       return result.data as PlatformSettings;
     },
@@ -124,12 +121,12 @@ export default function Settings() {
   useEffect(() => {
     if (userData) {
       setPersonalInfo({
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        email: userData.email || "",
-        phone: userData.phone || "",
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
       });
-      
+
       // Reset image preview when user data loads
       if (userData.image?.url) {
         setImagePreview(userData.image.url);
@@ -147,13 +144,13 @@ export default function Settings() {
     if (file) {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size must be less than 5MB");
+        toast.error('Image size must be less than 5MB');
         return;
       }
 
       // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select a valid image file");
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
         return;
       }
 
@@ -169,9 +166,9 @@ export default function Settings() {
   // Remove selected image
   const handleRemoveImage = () => {
     setSelectedImage(null);
-    setImagePreview(userData?.image?.url || "");
+    setImagePreview(userData?.image?.url || '');
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -184,108 +181,102 @@ export default function Settings() {
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationKey: ["updateProfile"],
+    mutationKey: ['updateProfile'],
     mutationFn: async (formData: FormData) => {
       if (!token) {
-        throw new Error("Please login again");
+        throw new Error('Please login again');
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: formData,
+      });
 
       const data = await response.json();
 
       if (!response.ok || data.success === false) {
-        throw new Error(data.message || "Failed to update profile");
+        throw new Error(data.message || 'Failed to update profile');
       }
 
       return data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || "Profile updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      toast.success(data.message || 'Profile updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
       setIsEditing(false);
       setSelectedImage(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
       refetch();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update profile");
+      toast.error(error.message || 'Failed to update profile');
     },
   });
 
   // Change password mutation
   const changePasswordMutation = useMutation({
-    mutationKey: ["changePassword"],
+    mutationKey: ['changePassword'],
     mutationFn: async (payload: ChangePasswordPayload) => {
       if (!token) {
-        throw new Error("Please login again");
+        throw new Error('Please login again');
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/change-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify(payload),
+      });
 
       const data = await response.json();
 
       if (!response.ok || data.success === false) {
-        throw new Error(data.message || "Failed to change password");
+        throw new Error(data.message || 'Failed to change password');
       }
 
       return data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || "Password updated successfully");
+      toast.success(data.message || 'Password updated successfully');
       setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
       });
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to change password");
+      toast.error(error.message || 'Failed to change password');
     },
   });
 
   const updateSettingsMutation = useMutation({
-    mutationKey: ["updatePlatformSettings"],
+    mutationKey: ['updatePlatformSettings'],
     mutationFn: async (payload: PlatformSettings) => {
-      if (!token) throw new Error("Please login again");
+      if (!token) throw new Error('Please login again');
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/settings`, {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
       const result = await response.json();
       if (!response.ok || result.success === false) {
-        throw new Error(result.message || "Failed to save platform settings");
+        throw new Error(result.message || 'Failed to save platform settings');
       }
       return result;
     },
     onSuccess: async (result) => {
-      toast.success(result.message || "Platform settings saved successfully");
-      await queryClient.invalidateQueries({ queryKey: ["platformSettings"] });
+      toast.success(result.message || 'Platform settings saved successfully');
+      await queryClient.invalidateQueries({ queryKey: ['platformSettings'] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -295,14 +286,14 @@ export default function Settings() {
     e.preventDefault();
 
     const formData = new FormData();
-    formData.append("firstName", personalInfo.firstName);
-    formData.append("lastName", personalInfo.lastName);
-    formData.append("email", personalInfo.email);
-    formData.append("phone", personalInfo.phone);
+    formData.append('firstName', personalInfo.firstName);
+    formData.append('lastName', personalInfo.lastName);
+    formData.append('email', personalInfo.email);
+    formData.append('phone', personalInfo.phone);
 
     // Append image if selected
     if (selectedImage) {
-      formData.append("image", selectedImage);
+      formData.append('image', selectedImage);
     }
 
     updateProfileMutation.mutate(formData);
@@ -314,12 +305,12 @@ export default function Settings() {
 
     // Validation
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("New password and confirm password do not match");
+      toast.error('New password and confirm password do not match');
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters long");
+      toast.error('Password must be at least 6 characters long');
       return;
     }
 
@@ -348,16 +339,20 @@ export default function Settings() {
           <div className="relative">
             <Avatar className="h-20 w-20 border-2 border-white shadow-sm">
               <AvatarImage
-                src={imagePreview || userData?.image?.url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"}
+                src={
+                  imagePreview ||
+                  userData?.image?.url ||
+                  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
+                }
                 alt="Profile"
                 className="object-cover"
               />
               <AvatarFallback>
-                {personalInfo.firstName?.charAt(0) || "U"}
-                {personalInfo.lastName?.charAt(0) || ""}
+                {personalInfo.firstName?.charAt(0) || 'U'}
+                {personalInfo.lastName?.charAt(0) || ''}
               </AvatarFallback>
             </Avatar>
-            
+
             {isEditing && (
               <>
                 <button
@@ -368,7 +363,7 @@ export default function Settings() {
                 >
                   <Camera size={14} />
                 </button>
-                
+
                 {selectedImage && (
                   <button
                     type="button"
@@ -379,7 +374,7 @@ export default function Settings() {
                     <X size={12} />
                   </button>
                 )}
-                
+
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -400,7 +395,7 @@ export default function Settings() {
                 variant="secondary"
                 className="bg-[#e2e8f0] text-slate-600 font-medium px-2.5 py-0.5 rounded-full text-xs"
               >
-                {userData?.role || "User"}
+                {userData?.role || 'User'}
               </Badge>
             </div>
             <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
@@ -410,11 +405,7 @@ export default function Settings() {
                 className="text-[#ff5e1a] hover:opacity-80 transition-opacity p-1 rounded focus:outline-none"
                 title="Copy Email"
               >
-                {copied ? (
-                  <Check size={16} className="text-green-500" />
-                ) : (
-                  <Copy size={16} />
-                )}
+                {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
               </button>
             </div>
           </div>
@@ -425,18 +416,16 @@ export default function Settings() {
       <Card className="bg-white border-[#eef2f6] shadow-sm rounded-xl overflow-hidden">
         <CardContent className="p-6">
           <div className="flex justify-between py-3 items-center mb-6">
-            <h3 className="text-xl font-bold text-slate-900">
-              Personal Information
-            </h3>
+            <h3 className="text-xl font-bold text-slate-900">Personal Information</h3>
             <Button
               onClick={() => {
                 setIsEditing(!isEditing);
                 if (!isEditing) {
                   // Reset image preview when entering edit mode
-                  setImagePreview(userData?.image?.url || "");
+                  setImagePreview(userData?.image?.url || '');
                   setSelectedImage(null);
                   if (fileInputRef.current) {
-                    fileInputRef.current.value = "";
+                    fileInputRef.current.value = '';
                   }
                 }
               }}
@@ -444,7 +433,7 @@ export default function Settings() {
               disabled={updateProfileMutation.isPending}
             >
               <Pencil size={16} />
-              {isEditing ? "Cancel" : "Edit"}
+              {isEditing ? 'Cancel' : 'Edit'}
             </Button>
           </div>
 
@@ -497,25 +486,19 @@ export default function Settings() {
                   type="email"
                   value={personalInfo.email}
                   disabled={!isEditing}
-                  onChange={(e) =>
-                    setPersonalInfo({ ...personalInfo, email: e.target.value })
-                  }
+                  onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                   className="w-full bg-white disabled:bg-white border-slate-200 disabled:text-slate-400 font-normal h-11 px-4 rounded-lg focus-visible:ring-[#ff5e1a]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[15px] font-semibold text-slate-800 mb-2">
-                  Phone
-                </label>
+                <label className="block text-[15px] font-semibold text-slate-800 mb-2">Phone</label>
                 <Input
                   type="text"
                   value={personalInfo.phone}
                   disabled={!isEditing}
-                  onChange={(e) =>
-                    setPersonalInfo({ ...personalInfo, phone: e.target.value })
-                  }
+                  onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
                   className="w-full bg-white disabled:bg-white border-slate-200 disabled:text-slate-400 font-normal h-11 px-4 rounded-lg focus-visible:ring-[#ff5e1a]"
                 />
               </div>
@@ -535,9 +518,7 @@ export default function Settings() {
                   className="bg-[#ff5e1a] hover:bg-[#e04f13] text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm"
                   disabled={updateProfileMutation.isPending}
                 >
-                  {updateProfileMutation.isPending
-                    ? "Saving..."
-                    : "Save Changes"}
+                  {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>
             )}
@@ -548,9 +529,7 @@ export default function Settings() {
       {/* 3. Change Password Card */}
       <Card className="bg-white border-[#eef2f6] py-4 shadow-sm rounded-xl overflow-hidden">
         <CardContent className="p-6">
-          <h3 className="text-xl font-bold text-slate-900 mb-6">
-            Change Password
-          </h3>
+          <h3 className="text-xl font-bold text-slate-900 mb-6">Change Password</h3>
 
           <form onSubmit={handleChangePassword} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -616,9 +595,7 @@ export default function Settings() {
                 className="bg-[#ff5e1a] hover:bg-[#e04f13] text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm"
                 disabled={changePasswordMutation.isPending}
               >
-                {changePasswordMutation.isPending
-                  ? "Updating..."
-                  : "Update Password"}
+                {changePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
               </Button>
             </div>
           </form>
@@ -635,7 +612,7 @@ export default function Settings() {
             onSubmit={(event) => {
               event.preventDefault();
               if (platformSettings.forfeitureDays <= platformSettings.pickupGraceDays) {
-                toast.error("Forfeiture days must be greater than pickup grace days");
+                toast.error('Forfeiture days must be greater than pickup grace days');
                 return;
               }
               updateSettingsMutation.mutate(platformSettings);
@@ -643,17 +620,21 @@ export default function Settings() {
             className="space-y-6"
           >
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-              {([
-                ["pickupGraceDays", "Pickup Grace Days"],
-                ["storageFeePerDay", "Storage Fee Per Day ($)"],
-                ["forfeitureDays", "Forfeiture Days"],
-              ] as const).map(([key, label]) => (
+              {(
+                [
+                  ['pickupGraceDays', 'Pickup Grace Days'],
+                  ['storageFeePerDay', 'Storage Fee Per Day ($)'],
+                  ['forfeitureDays', 'Forfeiture Days'],
+                ] as const
+              ).map(([key, label]) => (
                 <div key={key}>
-                  <label className="mb-2 block text-[15px] font-semibold text-slate-800">{label}</label>
+                  <label className="mb-2 block text-[15px] font-semibold text-slate-800">
+                    {label}
+                  </label>
                   <Input
                     type="number"
-                    min={key === "forfeitureDays" ? 1 : 0}
-                    step={key === "storageFeePerDay" ? "0.01" : "1"}
+                    min={key === 'forfeitureDays' ? 1 : 0}
+                    step={key === 'storageFeePerDay' ? '0.01' : '1'}
                     value={platformSettings[key]}
                     onChange={(event) =>
                       setPlatformSettings((current) => ({
@@ -668,10 +649,12 @@ export default function Settings() {
               ))}
             </div>
             <div>
-              <label className="mb-2 block text-[15px] font-semibold text-slate-800">Pickup Instructions</label>
+              <label className="mb-2 block text-[15px] font-semibold text-slate-800">
+                Pickup Instructions
+              </label>
               <textarea
                 rows={4}
-                value={platformSettings.pickupInstructions || ""}
+                value={platformSettings.pickupInstructions || ''}
                 onChange={(event) =>
                   setPlatformSettings((current) => ({
                     ...current,
@@ -688,7 +671,7 @@ export default function Settings() {
                 disabled={settingsQuery.isLoading || updateSettingsMutation.isPending}
                 className="bg-[#ff5e1a] px-6 text-white hover:bg-[#e04f13]"
               >
-                {updateSettingsMutation.isPending ? "Saving..." : "Save Platform Settings"}
+                {updateSettingsMutation.isPending ? 'Saving...' : 'Save Platform Settings'}
               </Button>
             </div>
           </form>

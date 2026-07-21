@@ -1,4 +1,4 @@
-import { PickupSlotsAdminPage } from "@/features/admin-dashboard/pages";
+import { PickupSlotsAdminPage } from '../../../../components/pickup/pickup';
 
 export default function PickupSlotsPage() {
   return <PickupSlotsAdminPage />;

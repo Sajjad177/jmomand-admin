@@ -1,4 +1,4 @@
-import { CategoriesAdminPage } from "@/features/admin-dashboard/pages";
+import { CategoriesAdminPage } from '../../../../components/category/category';
 
 export default function CategoriesPage() {
   return <CategoriesAdminPage />;

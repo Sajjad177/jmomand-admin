@@ -1,16 +1,25 @@
-import { Avatar } from "@/components/ui/avatar";
+'use client';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useUserProfile } from '../../features/hook/userhook';
 
 export function TopHeader() {
+  const token = localStorage.getItem('accessToken') || '';
+
+  const { data: user } = useUserProfile({ token });
+  console.log('this is user data', user);
+
   return (
-    <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-slate-200 bg-white px-4 lg:px-8">
+    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur-md sm:px-6 lg:px-8">
       <div>
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">J Momand Admin</p>
-        <h1 className="mt-1 text-xl font-semibold text-slate-950">Dashboard</h1>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
       </div>
 
       <div className="flex items-center gap-3">
-
-        <Avatar className="bg-[#061f42] text-white">DM</Avatar>
+        <Avatar>
+          <AvatarImage src={user?.image?.url} />
+          <AvatarFallback>{user?.firstName?.charAt(0)}</AvatarFallback>
+        </Avatar>
       </div>
     </header>
   );

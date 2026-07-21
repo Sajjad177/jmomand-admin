@@ -1,4 +1,4 @@
-import { NotificationsAdminPage } from "@/features/admin-dashboard/pages";
+import { NotificationsAdminPage } from '../../../../components/Notification/notification';
 
 export default function NotificationsPage() {
   return <NotificationsAdminPage />;

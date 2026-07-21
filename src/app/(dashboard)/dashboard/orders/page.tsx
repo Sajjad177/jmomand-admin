@@ -1,4 +1,4 @@
-import { OrdersAdminPage } from "@/features/admin-dashboard/pages";
+import { OrdersAdminPage } from '../../../../components/orders/order';
 
 export default function OrdersPage() {
   return <OrdersAdminPage />;
