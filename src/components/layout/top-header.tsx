@@ -2,12 +2,13 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUserProfile } from '../../features/hook/userhook';
+import { useSession } from 'next-auth/react';
 
 export function TopHeader() {
-  const token = localStorage.getItem('accessToken') || '';
+  const { data: session } = useSession();
+  const token = session?.user?.accessToken;
 
   const { data: user } = useUserProfile({ token });
-  console.log('this is user data', user);
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur-md sm:px-6 lg:px-8">
