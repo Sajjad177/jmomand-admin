@@ -18,29 +18,8 @@ import {
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { AuctionResponse } from "@/types/AuctionType";
 
-interface AuctionItem {
-  _id: string;
-  inventoryId: string;
-  title: string;
-  category: string;
-  condition: string;
-}
-
-interface MetaData {
-  page: number;
-  limit: number;
-  total: number;
-  totalPage: number;
-}
-
-interface AuctionResponse {
-  success: boolean;
-  message: string;
-  statusCode: number;
-  data: AuctionItem[];
-  meta: MetaData;
-}
 
 export default function ListOfauoction() {
   const router = useRouter();
@@ -82,10 +61,14 @@ export default function ListOfauoction() {
     enabled: !!token,
   });
 
+
+
   const products = responseData?.data || [];
   const meta = responseData?.meta;
   const totalProducts = meta?.total || 0;
   const totalPages = meta?.totalPage || 1;
+
+  console.log("auction products", products)
 
   // Checkbox Handlers
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,20 +93,20 @@ export default function ListOfauoction() {
   };
 
   // Click Action: Transfer selected products data layer to local storage dynamic router payload
-  const handlePublishNavigation = () => {
-    if (selectedProductIds.length === 0) {
-      toast.error("Please select at least one product to publish on auction.");
-      return;
-    }
-    const selectedProductsDetails = products.filter((p) =>
-      selectedProductIds.includes(p._id),
-    );
-    localStorage.setItem(
-      "selected_auction_products",
-      JSON.stringify(selectedProductsDetails),
-    );
-    router.push("/dashboard/auctions/add"); // Adjust route path destination properly
-  };
+  // const handlePublishNavigation = () => {
+  //   if (selectedProductIds.length === 0) {
+  //     toast.error("Please select at least one product to publish on auction.");
+  //     return;
+  //   }
+  //   const selectedProductsDetails = products.filter((p) =>
+  //     selectedProductIds.includes(p._id),
+  //   );
+  //   localStorage.setItem(
+  //     "selected_auction_products",
+  //     JSON.stringify(selectedProductsDetails),
+  //   );
+  //   router.push("/dashboard/auctions/add"); // Adjust route path destination properly
+  // };
 
   const deleteMutation = useMutation({
     mutationKey: ["publishAuction"],
@@ -207,12 +190,11 @@ export default function ListOfauoction() {
 
           {/* Dynamically Styled Action Button conditional logic trigger layout tracking */}
           <button
-            onClick={handlePublishNavigation}
+            onClick={() => router.push("/dashboard/auctions/add")}
             className="h-10 px-4 bg-[#FF5A1F] text-sm font-medium text-white rounded-lg hover:bg-[#e04e18] transition-colors shadow-sm flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
-            Auction Publish{" "}
-            {selectedProductIds.length > 0 && `(${selectedProductIds.length})`}
+            Auction Publish
           </button>
         </div>
       </div>

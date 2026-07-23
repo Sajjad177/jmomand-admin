@@ -271,3 +271,21 @@ export function TableSkeleton({
     </>
   );
 }
+
+
+// Dynamic End Date Calculation
+export const calculateEndDate = (startDate: string, startTime: string, auctionDurationDays: number) => {
+  if (!startDate || !startTime || !auctionDurationDays) return "N/A";
+
+  const start = new Date(`${startDate}T${startTime}`);
+  if (isNaN(start.getTime())) return "N/A";
+
+  start.setDate(start.getDate() + Number(auctionDurationDays));
+  return (
+    start.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }) + ` ${startTime}`
+  );
+};
