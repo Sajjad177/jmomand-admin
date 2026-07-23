@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+
 import {
-  // BellIcon,
   BoxIcon,
   EyeIcon,
   GavelIcon,
@@ -15,6 +15,7 @@ import {
   TruckIcon,
   WalletIcon,
 } from "@/components/ui/icons";
+
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
@@ -25,12 +26,16 @@ const navItems = [
   { href: "/dashboard/inventory", label: "Inventory", icon: BoxIcon },
   // { href: "/dashboard/categories", label: "Categories", icon: GridIcon },
   { href: "/dashboard/auctions", label: "Auctions", icon: GavelIcon },
-  { href: "/dashboard/pickup-request", label: "Pickup Request", icon: TruckIcon },
+  {
+    href: "/dashboard/pickup-request",
+    label: "Pickup Request",
+    icon: TruckIcon,
+  },
   // { href: "/dashboard/pickup-slots", label: "Pickup Slots", icon: TruckIcon },
   { href: "/dashboard/orders", label: "Orders", icon: BoxIcon },
   { href: "/dashboard/invoices", label: "Invoices", icon: WalletIcon },
   { href: "/dashboard/payments", label: "Payments", icon: WalletIcon },
-  // { href: "/dashboard/notifications", label: "Notifications", icon: BellIcon },
+
   { href: "/dashboard/reports", label: "Reports", icon: GridIcon },
   { href: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -48,16 +53,21 @@ export function AppSidebar() {
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-[#061f42] text-white lg:flex">
-      <div >
-        <Link href="/dashboard" className="flex items-center justify-center   gap-2">
-         <Image src={"/logo.png"} alt="Logo" width={100} height={100} />
+    
+     <div>
+        <Link
+          href="/dashboard"
+          className="flex items-center justify-center   gap-2"
+        >
+          <Image src={"/logo.png"} alt="Logo" width={100} height={100} />
         </Link>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-5 py-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link
@@ -65,7 +75,8 @@ export function AppSidebar() {
               href={item.href}
               className={cn(
                 "flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium text-slate-300 transition-colors",
-                active && "bg-orange-600 text-white shadow-sm shadow-orange-950/20",
+                active &&
+                  "bg-orange-600 text-white shadow-sm shadow-orange-950/20",
                 !active && "hover:bg-white/10 hover:text-white",
               )}
             >
@@ -78,14 +89,19 @@ export function AppSidebar() {
 
       <div className="space-y-4 px-5 pb-6">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 bg-slate-100 text-slate-900">{initials}</Avatar>
+          <Avatar className="h-10 w-10 bg-slate-100 text-slate-900">
+            {initials}
+          </Avatar>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{displayName}</p>
-            <p className="truncate text-xs capitalize text-slate-300">{session?.user?.role || "Admin"}</p>
+            <p className="truncate text-xs capitalize text-slate-300">
+              {session?.user?.role || "Admin"}
+            </p>
           </div>
         </div>
+
         <Button
-        onClick={()=> signOut({callbackUrl:"/login"})}
+          onClick={() => signOut({ callbackUrl: "/login" })}
           variant="outline"
           className="h-10 w-full border-orange-500/70 bg-transparent text-orange-400 hover:bg-orange-500 hover:text-white"
         >
