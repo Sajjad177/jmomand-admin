@@ -1,10 +1,10 @@
-import React from 'react'
-import AuctionPublishAddPage from '../_components/Publised-auoction'
+
+import CreateAuctionPage from '../_components/AddAuction'
 
 const page = () => {
   return (
     <div>
-        <AuctionPublishAddPage/>
+      <CreateAuctionPage />
     </div>
   )
 }

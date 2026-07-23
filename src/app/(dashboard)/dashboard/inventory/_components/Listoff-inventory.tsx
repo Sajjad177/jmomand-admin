@@ -29,6 +29,7 @@ import BulkImportModal from "./BulkImportModal";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { InventoryResponse } from "@/types/productTypes";
+import { Pagination } from "@/components/pagination";
 
 export default function ProductDashboard() {
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
@@ -316,11 +317,10 @@ export default function ProductDashboard() {
                       {/* Type Badge */}
                       <td className="py-4 px-4 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${
-                            product.type === "for_auction"
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${product.type === "for_auction"
                               ? "bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20"
                               : "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20"
-                          }`}
+                            }`}
                         >
                           {product.type === "for_auction" ? "Auction" : "Sale"}
                         </span>
@@ -334,11 +334,10 @@ export default function ProductDashboard() {
                       {/* Quantity */}
                       <td className="py-4 px-4 whitespace-nowrap">
                         <span
-                          className={`font-semibold ${
-                            product.quantity < 10
+                          className={`font-semibold ${product.quantity < 10
                               ? "text-rose-600"
                               : "text-slate-700"
-                          }`}
+                            }`}
                         >
                           {product.quantity}
                         </span>
@@ -357,7 +356,7 @@ export default function ProductDashboard() {
                           </button>
 
                           {/* Options Menu */}
-                          
+
                         </div>
                       </td>
                     </tr>
@@ -375,51 +374,12 @@ export default function ProductDashboard() {
         </div>
 
         {/* 3. Pagination Footer */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-slate-200 bg-slate-50/50">
-          <p className="text-xs font-semibold text-slate-500">
-            Showing {products.length > 0 ? (page - 1) * limit + 1 : 0} to{" "}
-            {Math.min(page * limit, totalProducts)} of {totalProducts} entries
-          </p>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-              className="flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </button>
-
-            <div className="flex items-center gap-1.5">
-              {Array.from({ length: totalPages }, (_, index) => {
-                const pageNumber = index + 1;
-                return (
-                  <button
-                    key={pageNumber}
-                    onClick={() => handlePageChange(pageNumber)}
-                    className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg transition-all ${
-                      page === pageNumber
-                        ? "bg-slate-900 text-white shadow-sm"
-                        : "text-slate-600 bg-white border border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    {pageNumber}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
-              className="flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          siblingCount={1}
+        />
       </div>
 
       {/* Bulk Import Modal */}
