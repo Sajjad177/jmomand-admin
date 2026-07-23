@@ -14,73 +14,74 @@ import {
   ArrowDownAZ,
   Trash2,
   Pencil,
+  Eye,
+  Package,
+  Layers,
+  DollarSign,
+  X,
+  Tag,
+  Boxes,
+  CheckCircle2,
+  Gavel,
 } from "lucide-react";
 import Link from "next/link";
 import BulkImportModal from "./BulkImportModal";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-
-// --- Dynamic API Types Mapping ---
-interface InventoryItem {
-  _id: string;
-  inventoryId: string;
-  title: string;
-  category: string;
-  condition: string;
-  type: string;
-  quantity: number;
-}
-
-interface MetaData {
-  page: number;
-  limit: number;
-  total: number;
-  totalPage: number;
-}
-
-interface InventoryResponse {
-  success: boolean;
-  message: string;
-  statusCode: number;
-  data: InventoryItem[];
-  meta: MetaData;
-}
+import { InventoryResponse } from "@/types/productTypes";
 
 export default function ProductDashboard() {
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
   const queryClient = useQueryClient();
+
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null); // Quick View state
 
   // Search and Pagination States
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [order, setOrder] = useState<"asc" | "desc">("asc");
-  // Fetch Inventory dynamic data inside TanStack useQuery
+
+  // Fetch Inventory dynamic data
   const { data: responseData, isLoading } = useQuery<InventoryResponse>({
     queryKey: ["inventoryData", searchTerm, page, limit, order],
     queryFn: async () => {
-      if (!token) {
-        throw new Error("Please login again");
-      }
+      if (!token) throw new Error("Please login again");
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/inventory?searchTerm=${searchTerm}&page=${page}&limit=${limit}&sortOrder=${order}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
       const result = await response.json();
-
       if (!response.ok || result.success === false) {
         throw new Error(result.message || "Failed to fetch inventory data");
       }
+      return result;
+    },
+    enabled: !!token,
+  });
 
+  // Fetch all inventory for stats (no pagination limit)
+  const { data: statsData } = useQuery<InventoryResponse>({
+    queryKey: ["inventoryStats"],
+    queryFn: async () => {
+      if (!token) throw new Error("Please login again");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/inventory?limit=10000`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const result = await response.json();
+      if (!response.ok || result.success === false) {
+        throw new Error(result.message || "Failed to fetch stats");
+      }
       return result;
     },
     enabled: !!token,
@@ -91,6 +92,12 @@ export default function ProductDashboard() {
   const totalProducts = meta?.total || 0;
   const totalPages = meta?.totalPage || 1;
 
+  // Stats computation from full statsData
+  const allProducts = statsData?.data || [];
+  const totalSale = allProducts.filter((p) => p.type === "for_sale" || p.type !== "for_auction").length;
+  const totalAuction = allProducts.filter((p) => p.type === "for_auction").length;
+  const totalCategories = new Set(allProducts.map((p) => p.category).filter(Boolean)).size;
+
   // Pagination Handler
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -98,13 +105,11 @@ export default function ProductDashboard() {
     }
   };
 
+  // Delete Mutation
   const deleteMutation = useMutation({
     mutationKey: ["deleteProduct"],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: async (payload: any) => {
-      if (!token) {
-        throw new Error("Authorization token is missing. Please login again.");
-      }
+    mutationFn: async (payload: { id: string }) => {
+      if (!token) throw new Error("Authorization token is missing.");
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${payload.id}`,
@@ -114,22 +119,19 @@ export default function ProductDashboard() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
       const result = await response.json();
-
       if (!response.ok || result.success === false) {
         throw new Error(result.message || "Failed to delete product");
       }
-
       return result;
     },
     onSuccess: async (data) => {
       toast.success(data.message || "Product deleted successfully!");
-      await queryClient.invalidateQueries({
-        queryKey: ["inventoryData"],
-      });
+      await queryClient.invalidateQueries({ queryKey: ["inventoryData"] });
+      await queryClient.invalidateQueries({ queryKey: ["inventoryStats"] });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Something went wrong while deleting.");
@@ -141,249 +143,477 @@ export default function ProductDashboard() {
   };
 
   return (
-    <div className="w-full container bg-white rounded-xl border border-gray-100 shadow-sm p-8 font-sans">
-      {/* --- Top Action Bar --- */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        {/* Title and Count dynamically from meta */}
-        <div className="text-lg font-semibold text-gray-800">
-          All Product{" "}
-          <span className="text-[#FF5A1F] font-medium ml-1">
-            ({isLoading ? "..." : totalProducts})
-          </span>
+    <div className="w-full space-y-6 bg-slate-50/50 p-6 rounded-2xl min-h-screen">
+      {/* 1. Header & KPI Overview */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Inventory Management
+          </h1>
+          <p className="text-sm text-slate-500">
+            Monitor, update, and manage your store's stock and listings.
+          </p>
         </div>
 
-        {/* Controls Group */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search Input */}
-          <div className="relative min-w-[240px]">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setBulkModalOpen(true)}
+            className="flex items-center gap-2 h-10 px-4 bg-white border border-slate-200 text-sm font-medium text-slate-700 rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+          >
+            <ArrowUpFromLine className="w-4 h-4 text-slate-500" />
+            Bulk Import
+          </button>
+
+          <Link
+            href="/dashboard/inventory/add"
+            className="flex items-center gap-2 h-10 px-4 bg-orange-600 hover:bg-orange-700 text-sm font-medium text-white rounded-xl transition-all shadow-sm shadow-orange-600/20"
+          >
+            <Plus className="w-4 h-4" />
+            Add Item
+          </Link>
+        </div>
+      </div>
+
+      {/* Stats Summary Row */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Total Products"
+          value={totalProducts}
+          icon={Package}
+          color="text-blue-600"
+          bgColor="bg-blue-50"
+        />
+        <StatCard
+          title="Total Sale"
+          value={totalSale}
+          icon={DollarSign}
+          color="text-emerald-600"
+          bgColor="bg-emerald-50"
+        />
+        <StatCard
+          title="Total Auction"
+          value={totalAuction}
+          icon={Gavel}
+          color="text-amber-600"
+          bgColor="bg-amber-50"
+        />
+        <StatCard
+          title="Category"
+          value={totalCategories}
+          icon={Layers}
+          color="text-purple-600"
+          bgColor="bg-purple-50"
+        />
+      </div>
+
+      {/* 2. Main Content Card */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        {/* Table Toolbar */}
+        <div className="flex flex-col items-center justify-between gap-4 border-b border-slate-200 p-4 sm:flex-row">
+          {/* Search Box */}
+          <div className="relative w-full sm:w-80">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setPage(1); // resetting layout state to first page on search
+                setPage(1);
               }}
-              placeholder="Search Products......"
-              className="w-full h-10 pl-4 pr-10 bg-[#F5F7FA] text-sm text-gray-600 placeholder-gray-400 rounded-lg outline-none focus:ring-1 focus:ring-gray-200 transition-all"
+              placeholder="Search products by title, ID..."
+              className="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 text-sm text-slate-700 placeholder-slate-400 rounded-xl outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
             />
-            <Search className="absolute right-3 top-2.5 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
           </div>
 
-          {/* Filter Button */}
-
-          <button
-            onClick={() => setOrder(order === "asc" ? "desc" : "asc")}
-            className="flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            {order === "asc" ? (
-              <ArrowUpAZ className="w-4 h-4 text-gray-600" />
-            ) : (
-              <ArrowDownAZ className="w-4 h-4 text-gray-600" />
-            )}
-          </button>
-
-          {/* Bulk Import Button */}
-          <button
-            onClick={() => setBulkModalOpen(true)}
-            className="flex items-center gap-2 h-10 px-4 bg-white border border-gray-200 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <ArrowUpFromLine className="w-4 h-4 text-gray-500" />
-            Bulk Import
-          </button>
-
-          <BulkImportModal
-            isOpen={bulkModalOpen}
-            onClose={() => setBulkModalOpen(false)}
-            token={token || ""}
-          />
-
-          {/* Add Item Button */}
-          <button className="h-10 px-4 bg-[#FF5A1F] text-sm font-medium text-white rounded-lg hover:bg-[#e04e18] transition-colors shadow-sm">
-            <Link
-              href="/dashboard/inventory/add"
-              className="flex items-center gap-1.5"
+          {/* Sort Button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setOrder(order === "asc" ? "desc" : "asc")}
+              className="flex items-center gap-2 px-3 h-10 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+              title="Toggle Sort Order"
             >
-              <Plus className="w-4 h-4" />
-              Add Item
-            </Link>
-          </button>
+              Sort Order: {order.toUpperCase()}
+              {order === "asc" ? (
+                <ArrowUpAZ className="w-4 h-4 text-slate-600" />
+              ) : (
+                <ArrowDownAZ className="w-4 h-4 text-slate-600" />
+              )}
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* --- Products Table --- */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-[#E2EAF8] text-sm font-medium text-[#3A5B77]">
-              <th className="py-3 px-6 rounded-l-lg first-letter:uppercase">
-                Product Id
-              </th>
-              <th className="py-3 px-4">Product Name</th>
-              <th className="py-3 px-4">Category</th>
-              <th className="py-3 px-4">Condition</th>
-              <th className="py-3 px-4">Type</th>
-              <th className="py-3 px-4">Quantity</th>
-              <th className="py-3 px-6 text-center rounded-r-lg">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {isLoading ? (
+        {/* Products Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-600">
+            <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">
               <tr>
-                <td
-                  colSpan={6}
-                  className="py-8 text-center text-sm text-gray-400"
-                >
-                  Loading Products...
-                </td>
+                <th className="py-3.5 px-6">Product ID</th>
+                <th className="py-3.5 px-4">Title & Image</th>
+                <th className="py-3.5 px-4">Category</th>
+                <th className="py-3.5 px-4">Condition</th>
+                <th className="py-3.5 px-4">Type</th>
+                <th className="py-3.5 px-4">Price</th>
+                <th className="py-3.5 px-4">Quantity</th>
+                <th className="py-3.5 px-6 text-right">Actions</th>
               </tr>
-            ) : products.length > 0 ? (
-              products.map((product) => (
-                <tr
-                  key={product._id}
-                  className="hover:bg-gray-50/50 transition-colors"
-                >
-                  {/* Product ID from InventoryId */}
-                  <td className="py-4 px-6 text-sm font-medium text-gray-700 whitespace-nowrap">
-                    {product.inventoryId}
-                  </td>
-
-                  {/* Product Image & Name */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center text-blue-500 flex-shrink-0">
-                        <Headphones className="w-4 h-4" />
-                      </div>
-                      <span
-                        className="text-sm font-medium text-gray-700 max-w-[160px] truncate"
-                        title={product.title}
-                      >
-                        {product.title}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Category */}
-                  <td className="py-4 px-4 text-sm text-gray-600 whitespace-nowrap">
-                    {product.category}
-                  </td>
-
-                  {/* Condition Status Indicator styling */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2 text-sm text-gray-700 font-medium capitalize">
-                      <span
-                        className={`w-2 h-2 rounded-full ${product.condition.toLowerCase() === "new"
-                            ? "bg-[#10B981]"
-                            : "bg-[#F97316]"
-                          }`}
-                      />
-                      {product.condition.replace("_", " ")}
-                    </div>
-                  </td>
-
-                  <td className="py-4 px-4 text-sm text-gray-600 font-medium whitespace-nowrap">
-                    {product.type === "for_auction" ? "Auction" : "Sale"}
-                  </td>
-
-                  {/* Quantity */}
-                  <td className="py-4 px-4 text-sm text-gray-600 font-medium whitespace-nowrap">
-                    {product.quantity}
-                  </td>
-
-                  {/* Action Row Button */}
-                  <td className="py-4 px-6 text-center whitespace-nowrap relative">
-                    <button
-                      onClick={() =>
-                        setOpenDropdown(
-                          openDropdown === product._id ? null : product._id,
-                        )
-                      }
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-
-                    {openDropdown === product._id && (
-                      <div className="absolute right-6 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                        <Link
-                          href={`/dashboard/inventory/${product._id}`}
-                          onClick={() => setOpenDropdown(null)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => {
-                            handleDelete(product._id);
-                            setOpenDropdown(null);
-                          }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                    Loading Products...
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="py-8 text-center text-sm text-gray-400"
-                >
-                  No products found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ) : products.length > 0 ? (
+                products.map((product) => {
+                  const imageUrl = product.images?.[0]?.url;
+
+                  return (
+                    <tr
+                      key={product._id}
+                      className="hover:bg-slate-50/80 transition-colors"
+                    >
+                      {/* Product ID */}
+                      <td className="py-4 px-6 font-semibold text-slate-900 whitespace-nowrap">
+                        <span className="font-mono text-xs text-slate-700">
+                          {product.inventoryId || "N/A"}
+                        </span>
+                      </td>
+
+                      {/* Product Image & Title */}
+                      <td className="py-4 px-4 max-w-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
+                            {imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={product.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <Headphones className="w-5 h-5 text-slate-400" />
+                            )}
+                          </div>
+                          <span
+                            className="font-medium text-slate-900 truncate"
+                            title={product.title}
+                          >
+                            {product.title}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-4 px-4 text-slate-600 whitespace-nowrap">
+                        {product.category || "-"}
+                      </td>
+
+                      {/* Condition Badge */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <ConditionBadge condition={product.condition} />
+                      </td>
+
+                      {/* Type Badge */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${
+                            product.type === "for_auction"
+                              ? "bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20"
+                              : "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20"
+                          }`}
+                        >
+                          {product.type === "for_auction" ? "Auction" : "Sale"}
+                        </span>
+                      </td>
+
+                      {/* Price */}
+                      <td className="py-4 px-4 font-semibold text-slate-900 whitespace-nowrap">
+                        ${product.price?.toLocaleString() || "0"}
+                      </td>
+
+                      {/* Quantity */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span
+                          className={`font-semibold ${
+                            product.quantity < 10
+                              ? "text-rose-600"
+                              : "text-slate-700"
+                          }`}
+                        >
+                          {product.quantity}
+                        </span>
+                      </td>
+
+                      {/* Action Column with Eye & Dropdown */}
+                      <td className="py-4 px-6 text-right whitespace-nowrap relative">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Quick View Button */}
+                          <button
+                            onClick={() => setSelectedProduct(product)}
+                            className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                            title="View Product Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          {/* Options Menu */}
+                          
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                    No products found matching your search.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 3. Pagination Footer */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-slate-200 bg-slate-50/50">
+          <p className="text-xs font-semibold text-slate-500">
+            Showing {products.length > 0 ? (page - 1) * limit + 1 : 0} to{" "}
+            {Math.min(page * limit, totalProducts)} of {totalProducts} entries
+          </p>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+              className="flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </button>
+
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: totalPages }, (_, index) => {
+                const pageNumber = index + 1;
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => handlePageChange(pageNumber)}
+                    className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg transition-all ${
+                      page === pageNumber
+                        ? "bg-slate-900 text-white shadow-sm"
+                        : "text-slate-600 bg-white border border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === totalPages}
+              className="flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* --- Dynamic Pagination Footer with API data mapping --- */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-2">
-          {/* Previous Button */}
-          <button
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1}
-            className="flex items-center gap-1 h-9 px-3 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </button>
+      {/* Bulk Import Modal */}
+      <BulkImportModal
+        isOpen={bulkModalOpen}
+        onClose={() => setBulkModalOpen(false)}
+        token={token || ""}
+      />
 
-          {/* Page Numbers Mapping */}
-          <div className="flex items-center gap-1.5">
-            {Array.from({ length: totalPages }, (_, index) => {
-              const pageNumber = index + 1;
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => handlePageChange(pageNumber)}
-                  className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-md transition-colors ${page === pageNumber
-                      ? "bg-[#D9E4F7] text-[#2563EB]"
-                      : "text-gray-500 border border-gray-200 hover:bg-gray-50"
-                    }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
+      {/* Product Detail Slide-over Drawer / Modal */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            SUB-COMPONENTS (UI)                             */
+/* -------------------------------------------------------------------------- */
+
+// 1. KPI Stat Card
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+  bgColor,
+}: {
+  title: string;
+  value: number;
+  icon: any;
+  color: string;
+  bgColor: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          {title}
+        </p>
+        <p className="mt-1 text-2xl font-bold text-slate-900">
+          {value.toLocaleString()}
+        </p>
+      </div>
+      <div className={`rounded-xl p-3 ${bgColor} ${color}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+    </div>
+  );
+}
+
+// 2. Condition Pill Badge
+function ConditionBadge({ condition }: { condition?: string }) {
+  const cond = condition?.toLowerCase() || "";
+
+  if (cond === "new") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 capitalize">
+        <CheckCircle2 className="w-3 h-3" /> New
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 capitalize">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+      {condition?.replace("_", " ") || "Used"}
+    </span>
+  );
+}
+
+// 3. Product Quick View Modal
+function ProductDetailModal({
+  product,
+  onClose,
+}: {
+  product: any;
+  onClose: () => void;
+}) {
+  const imageUrl = product.images?.[0]?.url;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 p-4 px-6">
+          <div className="flex items-center gap-2">
+            <Tag className="w-4 h-4 text-orange-600" />
+            <span className="text-xs font-mono font-semibold text-slate-500">
+              {product.inventoryId}
+            </span>
           </div>
-
-          {/* Next Button */}
           <button
-            onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages}
-            className="flex items-center gap-1 h-9 px-3 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
-            Next
-            <ChevronRight className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
-      )}
+
+        {/* Modal Content */}
+        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+          {/* Image & Title */}
+          <div className="flex gap-4 items-start">
+            <div className="w-20 h-20 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Headphones className="w-8 h-8 text-slate-400" />
+              )}
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 leading-snug">
+                {product.title}
+              </h3>
+              <p className="text-xs font-medium text-slate-500 mt-1">
+                Manufacturer: {product.manufacturer || "N/A"}
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <ConditionBadge condition={product.condition} />
+                <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                  {product.category}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Details Grid */}
+          <div className="grid grid-cols-2 gap-3 bg-slate-50/80 p-4 rounded-xl border border-slate-100 text-xs">
+            <div>
+              <span className="text-slate-400 font-medium">Price:</span>
+              <p className="text-base font-bold text-slate-900 mt-0.5">
+                ${product.price?.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium">Stock Quantity:</span>
+              <p className="text-base font-bold text-slate-900 mt-0.5">
+                {product.quantity} Units
+              </p>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium">Type:</span>
+              <p className="font-semibold text-slate-700 capitalize mt-0.5">
+                {product.type?.replace("_", " ")}
+              </p>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium">Colors:</span>
+              <p className="font-semibold text-slate-700 capitalize mt-0.5">
+                {Array.isArray(product.color)
+                  ? product.color.join(", ")
+                  : product.color || "N/A"}
+              </p>
+            </div>
+          </div>
+
+          {/* Description */}
+          {product.description && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase text-slate-400 tracking-wider mb-1.5">
+                Description
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                {product.description}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Modal Footer */}
+        <div className="border-t border-slate-100 p-4 bg-slate-50/50 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+          >
+            Close
+          </button>
+          <Link
+            href={`/dashboard/inventory/${product._id}`}
+            className="px-4 py-2 text-xs font-semibold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors"
+          >
+            Edit Product
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
