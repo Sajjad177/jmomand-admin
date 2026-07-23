@@ -6,21 +6,15 @@ import {
   Search,
   ArrowUpFromLine,
   Plus,
-  MoreVertical,
-  ChevronLeft,
-  ChevronRight,
   Headphones,
   ArrowUpAZ,
   ArrowDownAZ,
-  Trash2,
-  Pencil,
   Eye,
   Package,
   Layers,
   DollarSign,
   X,
   Tag,
-  Boxes,
   CheckCircle2,
   Gavel,
 } from "lucide-react";
@@ -36,8 +30,6 @@ export default function ProductDashboard() {
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
   const queryClient = useQueryClient();
-
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null); // Quick View state
 
   // Search and Pagination States

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { getUserProfile } from '../../lib/user';
-import { getUserDetails, getUsers } from '../admin-dashboard/api';
 
 interface UseUserProfileProps {
   token?: string;

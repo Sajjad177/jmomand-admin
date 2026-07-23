@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { fullName } from '../../lib/helper';
 import { getUserDetails, getUsers, toggleUserBlock, toggleUserSuspension } from '../admin-dashboard/api';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function useUsersAdmin() {
     const { data: session } = useSession();
