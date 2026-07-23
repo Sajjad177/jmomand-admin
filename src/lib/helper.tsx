@@ -232,3 +232,42 @@ export function ReportCard({ title, rows }: { title: string; rows: string[][] })
     </div>
   );
 }
+
+export function TableSkeleton({
+  columns,
+  rows = 5,
+}: {
+  columns: number;
+  rows?: number;
+}) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, rowIndex) => (
+        <tr key={rowIndex} className="animate-pulse border-b border-slate-100">
+          {Array.from({ length: columns }).map((_, colIndex) => {
+            if (colIndex === 0) {
+              return (
+                <td key={colIndex} className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-slate-200 animate-pulse" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-slate-200 rounded w-24 animate-pulse" />
+                      <div className="h-3 bg-slate-200 rounded w-36 animate-pulse" />
+                    </div>
+                  </div>
+                </td>
+              );
+            }
+            const widths = ['w-12', 'w-16', 'w-20', 'w-24', 'w-28'];
+            const randomWidth = widths[(colIndex + rowIndex) % widths.length];
+            return (
+              <td key={colIndex} className="px-6 py-4">
+                <div className={`h-4 bg-slate-200 rounded ${randomWidth} animate-pulse`} />
+              </td>
+            );
+          })}
+        </tr>
+      ))}
+    </>
+  );
+}
