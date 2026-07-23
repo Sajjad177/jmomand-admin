@@ -24,18 +24,11 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: GridIcon },
   { href: "/dashboard/users", label: "Users", icon: EyeIcon },
   { href: "/dashboard/inventory", label: "Inventory", icon: BoxIcon },
-  // { href: "/dashboard/categories", label: "Categories", icon: GridIcon },
   { href: "/dashboard/auctions", label: "Auctions", icon: GavelIcon },
-  {
-    href: "/dashboard/pickup-request",
-    label: "Pickup Request",
-    icon: TruckIcon,
-  },
-  // { href: "/dashboard/pickup-slots", label: "Pickup Slots", icon: TruckIcon },
+  {href: "/dashboard/pickup-request",label: "Pickup Request",icon: TruckIcon,},
   { href: "/dashboard/orders", label: "Orders", icon: BoxIcon },
   { href: "/dashboard/invoices", label: "Invoices", icon: WalletIcon },
   { href: "/dashboard/payments", label: "Payments", icon: WalletIcon },
-
   { href: "/dashboard/reports", label: "Reports", icon: GridIcon },
   { href: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -53,7 +46,7 @@ export function AppSidebar() {
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-[#061f42] text-white lg:flex">
-    
+          
      <div>
         <Link
           href="/dashboard"
@@ -70,7 +63,6 @@ export function AppSidebar() {
             item.href === "/dashboard"
               ? pathname === "/dashboard"
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
-
           return (
             <Link
               key={item.href}
@@ -111,6 +103,7 @@ export function AppSidebar() {
           Log out
         </Button>
       </div>
+            
     </aside>
   );
 }

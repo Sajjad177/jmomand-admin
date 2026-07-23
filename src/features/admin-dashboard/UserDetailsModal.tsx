@@ -1,9 +1,7 @@
 import {
-    User,
     Mail,
     Phone,
     MapPin,
-    Shield,
     CreditCard,
     Calendar,
     CheckCircle2,
@@ -14,6 +12,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatDate, fullName } from '../../lib/helper';
 import { UserDetailsModalProps } from '@/types/userTypes';
+import type { LucideIcon } from 'lucide-react';
 
 export function UserDetailsModal({ selectedId, onClose, isLoading, user }: UserDetailsModalProps) {
     const address = [user?.street, user?.location, user?.postalCode]
@@ -137,7 +136,7 @@ function InfoRow({
     label,
     value
 }: {
-    icon: any;
+    icon: LucideIcon;
     label: string;
     value: React.ReactNode
 }) {

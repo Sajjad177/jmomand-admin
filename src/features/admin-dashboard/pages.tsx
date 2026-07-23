@@ -24,13 +24,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UserDetailsModal } from './UserDetailsModal';
 
-import { formatDate, fullName, PageShell, SearchBox, TableState, TableSkeleton } from '../../lib/helper';
+import { fullName, PageShell, SearchBox, TableState, TableSkeleton } from '../../lib/helper';
+import type { LucideIcon } from 'lucide-react';
+import type { AdminUser } from './types';
 
 export function UsersAdminPage() {
   const { data: session } = useSession();
@@ -376,7 +376,7 @@ function StatCard({
 }: {
   title: string;
   value: number;
-  icon: any;
+  icon: LucideIcon;
   color: string;
   bgColor: string;
 }) {
@@ -393,11 +393,11 @@ function StatCard({
   );
 }
 
-function AvatarInitials({ user, className }: { user: any; className?: string }) {
+function AvatarInitials({ user, className }: { user: AdminUser; className?: string }) {
   if (!user) return null;
   const initials = [user.firstName, user.lastName]
     .filter(Boolean)
-    .map((n) => n[0])
+    .map((n) => n?.[0] ?? '')
     .join('')
     .toUpperCase() || user.email?.[0]?.toUpperCase() || 'U';
 

@@ -132,6 +132,7 @@ export function Pager({
   isFetching?: boolean;
   onPage: (page: number) => void;
 }) {
+  void isFetching;
   return (
     <Pagination
       currentPage={page}

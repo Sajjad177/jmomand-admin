@@ -1,5 +1,5 @@
 // --- Dynamic API Types Mapping ---
-interface InventoryItem {
+export interface InventoryItem {
   _id: string;
   inventoryId: string;
   title: string;
@@ -8,6 +8,9 @@ interface InventoryItem {
   type: string;
   quantity: number;
   price: number;
+  manufacturer?: string;
+  color?: string[];
+  description?: string;
   images: {
     public_id: string;
     url: string;

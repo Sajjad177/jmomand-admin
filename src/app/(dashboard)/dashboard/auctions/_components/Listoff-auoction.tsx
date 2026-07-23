@@ -15,6 +15,7 @@ import { useSession } from "next-auth/react";
 import { Pagination } from "@/components/pagination";
 import { useGetAllAuctionsHook } from "@/features/hook/useAuctionHook";
 import { AuctionDetailsModal } from "./AuctionDetailsModal";
+import type { AuctionItem } from "@/types/AuctionType";
 
 
 export default function ListOfauoction() {
@@ -27,7 +28,6 @@ export default function ListOfauoction() {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [order, setOrder] = useState<"asc" | "desc">("asc");
-  const [selectedAuctionIds, setSelectedAuctionIds] = useState<string[]>([]);
 
   // Modal State
   const [selectedAuctionIdForModal, setSelectedAuctionIdForModal] = useState<string | null>(null);
@@ -59,11 +59,11 @@ export default function ListOfauoction() {
   // Filter & sort logic for client-side search
   const filteredAuctions = (auctions || [])
     .filter(
-      (auction: any) =>
+      (auction: AuctionItem) =>
         auction.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         auction.auctionId?.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .sort((a: any, b: any) => {
+    .sort((a: AuctionItem, b: AuctionItem) => {
       const titleA = a.title?.toLowerCase() || "";
       const titleB = b.title?.toLowerCase() || "";
       return order === "asc"
@@ -71,27 +71,13 @@ export default function ListOfauoction() {
         : titleB.localeCompare(titleA);
     });
 
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedAuctionIds(filteredAuctions.map((a: any) => a._id));
-    } else {
-      setSelectedAuctionIds([]);
-    }
-  };
-
-  const handleSelectItem = (id: string) => {
-    setSelectedAuctionIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
-
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setPage(newPage);
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -102,7 +88,7 @@ export default function ListOfauoction() {
     });
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status?: string) => {
     switch (status?.toLowerCase()) {
       case "active":
         return (
@@ -205,7 +191,7 @@ export default function ListOfauoction() {
                 </td>
               </tr>
             ) : filteredAuctions.length > 0 ? (
-              filteredAuctions.map((auction: any) => (
+              filteredAuctions.map((auction: AuctionItem) => (
                 <tr key={auction._id} className="hover:bg-gray-50/50 transition-colors">
                   
                   <td className="py-4 px-4 text-sm font-mono font-medium text-gray-700 whitespace-nowrap">
