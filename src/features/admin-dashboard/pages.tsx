@@ -27,10 +27,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UserDetailsModal } from './UserDetailsModal';
+import { Pagination } from '@/components/pagination';
 
 import { fullName, PageShell, SearchBox, TableState, TableSkeleton } from '../../lib/helper';
-import type { LucideIcon } from 'lucide-react';
-import type { AdminUser } from './types';
+import { PAGE_LIMIT } from './api';
 
 export function UsersAdminPage() {
   const { data: session } = useSession();
@@ -39,6 +39,7 @@ export function UsersAdminPage() {
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
+  const [page, setPage] = useState(1);
 
   const usersQuery = useQuery({
     queryKey: ['adminUsers'],
@@ -79,16 +80,28 @@ export function UsersAdminPage() {
     );
   }, [search, usersQuery.data]);
 
-  useEffect(() => {
-    console.log('Users shown in the table:', filteredUsers);
-  }, [filteredUsers]);
-
   const displayedUsers = useMemo(() => {
     return filteredUsers.filter((user) => {
       if (roleFilter === 'all') return true;
       return user.role?.toLowerCase() === roleFilter;
     });
   }, [filteredUsers, roleFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(displayedUsers.length / PAGE_LIMIT));
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (page - 1) * PAGE_LIMIT;
+    return displayedUsers.slice(startIndex, startIndex + PAGE_LIMIT);
+  }, [displayedUsers, page]);
+  const pageStart = displayedUsers.length === 0 ? 0 : (page - 1) * PAGE_LIMIT + 1;
+  const pageEnd = Math.min(page * PAGE_LIMIT, displayedUsers.length);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, roleFilter]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   // Statistics calculation
   const totalCount = usersQuery.data?.length ?? 0;
@@ -173,7 +186,7 @@ export function UsersAdminPage() {
               ) : displayedUsers.length === 0 ? (
                 <TableState colSpan={6} label="No users found." />
               ) : (
-                displayedUsers.map((user) => {
+                paginatedUsers.map((user) => {
                   const isAdmin = user.role === 'admin';
                   const isSuspending =
                     suspendMutation.isPending && suspendMutation.variables === user._id;
@@ -350,6 +363,20 @@ export function UsersAdminPage() {
             </tbody>
           </table>
         </div>
+        {displayedUsers.length > PAGE_LIMIT && (
+          <div className="border-t border-slate-100 px-6">
+            <div className="flex flex-col gap-2 py-2">
+              <p className="text-xs font-medium text-slate-500">
+                Showing {pageStart}-{pageEnd} of {displayedUsers.length} users
+              </p>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* User Details Modal */}

@@ -1,75 +1,103 @@
 'use client';
+
 import React from 'react';
-import { Plus, Gavel, MapPin } from 'lucide-react';
-import AddCategoryModal from './AddCategoryModal';
+import { Plus, Gavel, MapPin, ArrowUpRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+interface QuickActionItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  onClick: () => void;
+}
+
 export default function QuickActions() {
-  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = React.useState(false);
   const router = useRouter();
 
+  const actions: QuickActionItem[] = [
+    {
+      id: 'inventory',
+      title: 'Add Inventory',
+      description: 'Create new catalog item',
+      icon: Plus,
+      iconBg: 'bg-indigo-50 border-indigo-100 group-hover:bg-indigo-600 group-hover:border-indigo-600',
+      iconColor: 'text-indigo-600 group-hover:text-white',
+      onClick: () => router.push('/dashboard/inventory/add'),
+    },
+    {
+      id: 'auctions',
+      title: 'Create Auction',
+      description: 'Schedule bidding event',
+      icon: Gavel,
+      iconBg: 'bg-amber-50 border-amber-100 group-hover:bg-amber-500 group-hover:border-amber-500',
+      iconColor: 'text-amber-700 group-hover:text-white',
+      onClick: () => router.push('/dashboard/auctions'),
+    },
+    {
+      id: 'pickup',
+      title: 'Pickup Request',
+      description: 'Manage logistics & slots',
+      icon: MapPin,
+      iconBg: 'bg-emerald-50 border-emerald-100 group-hover:bg-emerald-600 group-hover:border-emerald-600',
+      iconColor: 'text-emerald-600 group-hover:text-white',
+      onClick: () => router.push('/dashboard/pickup-request'),
+    },
+  ];
+
   return (
-    <div className="w-full bg-white rounded-xl border border-slate-100 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-      <h3 className="font-bold text-[#0f233a] text-[16px] tracking-tight mb-5">Quick Actions</h3>
+    <div className="w-full rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+      {/* Header Section */}
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-semibold tracking-tight text-slate-900">
+            Quick Actions
+          </h3>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Shortcuts for common management tasks
+          </p>
+        </div>
+        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+          {actions.length} Shortcuts
+        </span>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Add Inventory */}
-        <button
-          onClick={() => router.push('/dashboard/inventory/add')}
-          className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group"
-        >
-          <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center mb-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-transform duration-200 group-hover:scale-105">
-            <Plus className="w-5 h-5 text-indigo-600" />
-          </div>
-          <span className="text-sm font-medium text-[#0f233a] tracking-tight">Add Inventory</span>
-        </button>
-
-        {/* Add Category */}
-        {/* <button
-          onClick={() => setIsAddCategoryModalOpen(true)}
-          className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group"
-        >
-          <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center mb-3">
-            <div className="flex flex-col items-center justify-center scale-90">
-              <div className="w-5 h-2 bg-amber-400 rounded-sm mb-[2px]" />
-              <div className="flex gap-[3px]">
-                <div className="w-2 h-3 bg-slate-400 rounded-sm" />
-                <div className="w-2.5 h-3 bg-rose-500 rounded-sm" />
+      {/* Action Grid */}
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+        {actions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.id}
+              onClick={action.onClick}
+              className="group relative flex flex-col justify-between rounded-xl border border-slate-200/70 bg-slate-50/50 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+            >
+              {/* Arrow indicator on hover */}
+              <div className="absolute right-3.5 top-3.5 opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100">
+                <ArrowUpRight className="h-4 w-4 text-slate-400" />
               </div>
-            </div>
-          </div>
 
-          <span className="text-sm font-medium text-[#0f233a] tracking-tight">
-            Add Category
-          </span>
-        </button> */}
+              <div className="flex items-start gap-3.5">
+                <div
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${action.iconBg}`}
+                >
+                  <Icon className={`h-5 w-5 transition-colors duration-200 ${action.iconColor}`} />
+                </div>
 
-        <AddCategoryModal
-          isOpen={isAddCategoryModalOpen}
-          onClose={() => setIsAddCategoryModalOpen(false)}
-        />
-
-        {/* Add Auctions */}
-        <button
-          onClick={() => router.push('/dashboard/auctions')}
-          className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group"
-        >
-          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mb-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-transform duration-200 group-hover:scale-105">
-            <Gavel className="w-5 h-5 text-amber-700" />
-          </div>
-          <span className="text-sm font-medium text-[#0f233a] tracking-tight">Add Auctions</span>
-        </button>
-
-        {/* Pickup Request */}
-        <button
-          onClick={() => router.push('/dashboard/pickup-request')}
-          className="flex flex-col items-center justify-center bg-[#f8fafc]/60 border border-slate-100 rounded-xl p-5 min-h-[120px] transition-all duration-200 hover:bg-[#f1f5f9] hover:border-slate-200 group"
-        >
-          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mb-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] transition-transform duration-200 group-hover:scale-105">
-            <MapPin className="w-5 h-5 text-rose-500 fill-rose-100" />
-          </div>
-          <span className="text-sm font-medium text-[#0f233a] tracking-tight">Pickup Request</span>
-        </button>
+                <div className="pr-4">
+                  <span className="block text-sm font-semibold tracking-tight text-slate-900">
+                    {action.title}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-normal text-slate-500">
+                    {action.description}
+                  </span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
