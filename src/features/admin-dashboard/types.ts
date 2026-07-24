@@ -31,6 +31,11 @@ export type ProductSummary = {
   title?: string;
   inventoryId?: string;
   images?: Array<{ url?: string }>;
+  category?: string;
+  categoryImage?: { url?: string };
+  color?: string[];
+  condition?: string;
+  manufacturer?: string;
   price?: number;
 };
 
