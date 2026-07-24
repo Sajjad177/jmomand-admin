@@ -108,10 +108,6 @@ export default function CreateAuctionPage() {
             },
         };
 
-        // Console logging payload to verify before sending
-        console.log("====================================");
-        console.log("PUBLISHING AUCTION PAYLOAD:", payload);
-        console.log("====================================");
 
         // Call Hook Mutation
         publishAuctionMutation.mutate(payload, {

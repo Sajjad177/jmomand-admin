@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { X } from "lucide-react";
+import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,25 +9,20 @@ import {
   DialogTitle,
   DialogDescription,
   DialogClose,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 interface AddInventoryModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function AddInventoryModal({
-  isOpen,
-  onClose,
-}: AddInventoryModalProps) {
-  const [inventoryName, setInventoryName] = useState("");
+export default function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
+  const [inventoryName, setInventoryName] = useState('');
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log("Saving inventory:", inventoryName);
-
-    setInventoryName("");
+    setInventoryName('');
     onClose();
   };
 
@@ -36,7 +31,7 @@ export default function AddInventoryModal({
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          setInventoryName("");
+          setInventoryName('');
           onClose();
         }
       }}
@@ -63,10 +58,7 @@ export default function AddInventoryModal({
 
         <form onSubmit={handleSave} className="pt-5">
           <div className="mb-6 space-y-2">
-            <label
-              htmlFor="inventoryName"
-              className="block text-xs font-bold text-[#0f233a]"
-            >
+            <label htmlFor="inventoryName" className="block text-xs font-bold text-[#0f233a]">
               Inventory Name
             </label>
 
@@ -85,7 +77,7 @@ export default function AddInventoryModal({
             <button
               type="button"
               onClick={() => {
-                setInventoryName("");
+                setInventoryName('');
                 onClose();
               }}
               className="w-full rounded-xl border border-orange-200 bg-white py-3 text-sm font-semibold text-[#f95d2c] transition-colors hover:bg-orange-50"
