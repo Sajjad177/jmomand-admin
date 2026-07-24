@@ -19,6 +19,7 @@ import {
   Info,
 } from "lucide-react";
 import { useGetAuctionDetailsHook } from "@/features/hook/useAuctionHook"; // Adjust import path if needed
+import type { AuctionProductItem, AuctionProductPivot } from "@/types/AuctionType";
 
 interface AuctionDetailsModalProps {
   auctionId: string | null;
@@ -259,10 +260,10 @@ export function AuctionDetailsModal({
                 </div>
 
                 <div className="space-y-4">
-                  {auction.products?.map((prod: any) => {
+                  {auction.products?.map((prod: AuctionProductItem) => {
                     // Match with corresponding entry in auctionProducts for bid details
                     const auctionProdMeta = auction.auctionProducts?.find(
-                      (ap: any) =>
+                      (ap: AuctionProductPivot) =>
                         ap._id === prod.auctionProductId ||
                         ap.productId === prod._id
                     );

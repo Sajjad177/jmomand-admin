@@ -1,10 +1,14 @@
-interface AuctionItem {
+export interface AuctionItem {
   _id: string;
   inventoryId: string;
   auctionId: string;
   title: string;
   category: string;
   condition: string;
+  startsAt?: string;
+  endsAt?: string;
+  status?: string;
+  products?: AuctionProductItem[];
 }
 
 interface MetaData {
@@ -149,15 +153,6 @@ export interface UseGetAllAuctionsOptions {
   enabled?: boolean;
 }
 
-
-export interface AuctionProductItem {
-  _id: string;
-  inventoryId: string;
-  title: string;
-  category: string;
-  condition: string;
-  reservePrice: number;
-}
 
 export interface AuctionDetails {
   _id: string;

@@ -403,7 +403,7 @@ function StatCard({
 }: {
   title: string;
   value: number;
-  icon: any;
+  icon: LucideIcon;
   color: string;
   bgColor: string;
 }) {
@@ -420,11 +420,11 @@ function StatCard({
   );
 }
 
-function AvatarInitials({ user, className }: { user: any; className?: string }) {
+function AvatarInitials({ user, className }: { user: AdminUser; className?: string }) {
   if (!user) return null;
   const initials = [user.firstName, user.lastName]
     .filter(Boolean)
-    .map((n) => n[0])
+    .map((n) => n?.[0] ?? '')
     .join('')
     .toUpperCase() || user.email?.[0]?.toUpperCase() || 'U';
 

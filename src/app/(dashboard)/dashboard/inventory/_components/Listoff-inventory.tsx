@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Search,
   ArrowUpFromLine,
@@ -21,16 +21,15 @@ import {
 import Link from "next/link";
 import BulkImportModal from "./BulkImportModal";
 import { useSession } from "next-auth/react";
-import { toast } from "sonner";
-import { InventoryResponse } from "@/types/productTypes";
+import { InventoryItem, InventoryResponse } from "@/types/productTypes";
+import type { LucideIcon } from "lucide-react";
 import { Pagination } from "@/components/pagination";
 
 export default function ProductDashboard() {
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
-  const queryClient = useQueryClient();
-  const [selectedProduct, setSelectedProduct] = useState<any | null>(null); // Quick View state
+  const [selectedProduct, setSelectedProduct] = useState<InventoryItem | null>(null); // Quick View state
 
   // Search and Pagination States
   const [searchTerm, setSearchTerm] = useState("");
@@ -98,43 +97,6 @@ export default function ProductDashboard() {
     }
   };
 
-  // Delete Mutation
-  const deleteMutation = useMutation({
-    mutationKey: ["deleteProduct"],
-    mutationFn: async (payload: { id: string }) => {
-      if (!token) throw new Error("Authorization token is missing.");
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${payload.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const result = await response.json();
-      if (!response.ok || result.success === false) {
-        throw new Error(result.message || "Failed to delete product");
-      }
-      return result;
-    },
-    onSuccess: async (data) => {
-      toast.success(data.message || "Product deleted successfully!");
-      await queryClient.invalidateQueries({ queryKey: ["inventoryData"] });
-      await queryClient.invalidateQueries({ queryKey: ["inventoryStats"] });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Something went wrong while deleting.");
-    },
-  });
-
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate({ id });
-  };
-
   return (
     <div className="w-full space-y-6 bg-slate-50/50 p-6 rounded-2xl min-h-screen">
       {/* 1. Header & KPI Overview */}
@@ -144,7 +106,7 @@ export default function ProductDashboard() {
             Inventory Management
           </h1>
           <p className="text-sm text-slate-500">
-            Monitor, update, and manage your store's stock and listings.
+            Monitor, update, and manage your store&apos;s stock and listings.
           </p>
         </div>
 
@@ -406,7 +368,7 @@ function StatCard({
 }: {
   title: string;
   value: number;
-  icon: any;
+  icon: LucideIcon;
   color: string;
   bgColor: string;
 }) {
@@ -452,7 +414,7 @@ function ProductDetailModal({
   product,
   onClose,
 }: {
-  product: any;
+  product: InventoryItem;
   onClose: () => void;
 }) {
   const imageUrl = product.images?.[0]?.url;

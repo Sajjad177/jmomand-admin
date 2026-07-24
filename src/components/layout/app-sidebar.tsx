@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { LogoutConfirmationModal } from '@/components/layout/logout-confirmation-modal';
 import {
-  // BellIcon,
   BoxIcon,
   EyeIcon,
   GavelIcon,
@@ -125,6 +124,7 @@ export function AppSidebar() {
             </p>
           </div>
         </div>
+
         <Button
           onClick={() => setLogoutOpen(true)}
           variant="outline"

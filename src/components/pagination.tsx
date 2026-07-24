@@ -132,6 +132,7 @@ export function Pager({
   isFetching?: boolean;
   onPage: (page: number) => void;
 }) {
+  void isFetching;
   return (
     <div className={isFetching ? "pointer-events-none opacity-60" : undefined}>
       <Pagination
