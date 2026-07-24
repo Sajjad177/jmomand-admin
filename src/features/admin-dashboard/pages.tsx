@@ -15,6 +15,7 @@ import {
   Users,
   ShieldAlert,
   AlertTriangle,
+  LucideIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getUserDetails, getUsers, toggleUserBlock, toggleUserSuspension } from './api';
@@ -31,6 +32,7 @@ import { Pagination } from '@/components/pagination';
 
 import { fullName, PageShell, SearchBox, TableState, TableSkeleton } from '../../lib/helper';
 import { PAGE_LIMIT } from './api';
+import { AdminUser } from './types';
 
 export function UsersAdminPage() {
   const { data: session } = useSession();
@@ -120,10 +122,11 @@ export function UsersAdminPage() {
               <button
                 key={role}
                 onClick={() => setRoleFilter(role)}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition-all ${roleFilter === role
-                  ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
-                  : 'text-slate-500 hover:text-slate-900'
-                  }`}
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition-all ${
+                  roleFilter === role
+                    ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
               >
                 {role}
               </button>
@@ -218,10 +221,11 @@ export function UsersAdminPage() {
                       {/* Role Badge */}
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold capitalize ${isAdmin
-                            ? 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20'
-                            : 'bg-slate-100 text-slate-700'
-                            }`}
+                          className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold capitalize ${
+                            isAdmin
+                              ? 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
                         >
                           {user.role || 'user'}
                         </span>
@@ -308,10 +312,11 @@ export function UsersAdminPage() {
                               <DropdownMenuItem
                                 disabled={isAdmin || isUpdating}
                                 onClick={() => suspendMutation.mutate(user._id)}
-                                className={`flex items-center gap-2.5 cursor-pointer rounded-lg px-2.5 py-2 text-xs font-semibold transition-colors ${user.isSuspend
-                                  ? 'text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700'
-                                  : 'text-amber-600 focus:bg-amber-50 focus:text-amber-700'
-                                  }`}
+                                className={`flex items-center gap-2.5 cursor-pointer rounded-lg px-2.5 py-2 text-xs font-semibold transition-colors ${
+                                  user.isSuspend
+                                    ? 'text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700'
+                                    : 'text-amber-600 focus:bg-amber-50 focus:text-amber-700'
+                                }`}
                               >
                                 {isSuspending ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -332,10 +337,11 @@ export function UsersAdminPage() {
                               <DropdownMenuItem
                                 disabled={isAdmin || isUpdating}
                                 onClick={() => blockMutation.mutate(user._id)}
-                                className={`flex items-center gap-2.5 cursor-pointer rounded-lg px-2.5 py-2 text-xs font-semibold transition-colors ${user.isBlocked
-                                  ? 'text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700'
-                                  : 'text-rose-600 focus:bg-rose-50 focus:text-rose-700'
-                                  }`}
+                                className={`flex items-center gap-2.5 cursor-pointer rounded-lg px-2.5 py-2 text-xs font-semibold transition-colors ${
+                                  user.isBlocked
+                                    ? 'text-emerald-600 focus:bg-emerald-50 focus:text-emerald-700'
+                                    : 'text-rose-600 focus:bg-rose-50 focus:text-rose-700'
+                                }`}
                               >
                                 {isBlocking ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -369,11 +375,7 @@ export function UsersAdminPage() {
               <p className="text-xs font-medium text-slate-500">
                 Showing {pageStart}-{pageEnd} of {displayedUsers.length} users
               </p>
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-              />
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
             </div>
           </div>
         )}
@@ -422,11 +424,14 @@ function StatCard({
 
 function AvatarInitials({ user, className }: { user: AdminUser; className?: string }) {
   if (!user) return null;
-  const initials = [user.firstName, user.lastName]
-    .filter(Boolean)
-    .map((n) => n?.[0] ?? '')
-    .join('')
-    .toUpperCase() || user.email?.[0]?.toUpperCase() || 'U';
+  const initials =
+    [user.firstName, user.lastName]
+      .filter(Boolean)
+      .map((n) => n?.[0] ?? '')
+      .join('')
+      .toUpperCase() ||
+    user.email?.[0]?.toUpperCase() ||
+    'U';
 
   return (
     <div

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Search, X, Check, Package, Loader2 } from "lucide-react";
-import { useAuctionProductsQuery } from "@/features/hook/useAuctionHook";
+import React, { useState, useEffect } from 'react';
+import { Search, X, Check, Package, Loader2 } from 'lucide-react';
+import { useAuctionProductsQuery } from '@/features/hook/useAuctionHook';
 
 export interface InventoryProduct {
   _id: string | { $oid: string };
@@ -30,12 +30,12 @@ export default function ProductSelectModal({
   alreadySelectedIds = [],
   onConfirmSelection,
 }: ProductSelectModalProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedMap, setSelectedMap] = useState<Record<string, InventoryProduct>>({});
 
   // Helper to extract string ID from string or MongoDB $oid object
   const getProductId = (product: InventoryProduct): string => {
-    if (typeof product._id === "object" && product._id !== null && "$oid" in product._id) {
+    if (typeof product._id === 'object' && product._id !== null && '$oid' in product._id) {
       return product._id.$oid;
     }
     return product._id as string;
@@ -45,22 +45,23 @@ export default function ProductSelectModal({
   useEffect(() => {
     if (isOpen) {
       setSelectedMap({});
-      setSearchTerm("");
+      setSearchTerm('');
     }
   }, [isOpen]);
 
   // Fetch auction items directly using /products/auctions
-  const { data: responseData, isLoading, isError, error } = useAuctionProductsQuery(
-    token || null,
-    searchTerm,
-    isOpen
-  );
+  const {
+    data: responseData,
+    isLoading,
+    isError,
+    error,
+  } = useAuctionProductsQuery(token || null, searchTerm, isOpen);
 
   const products: InventoryProduct[] = responseData?.data || [];
 
   // Filter out products that are already added to the parent form
   const selectableProducts = products.filter(
-    (product) => !alreadySelectedIds.includes(getProductId(product))
+    (product) => !alreadySelectedIds.includes(getProductId(product)),
   );
 
   // Toggle individual product selection
@@ -99,11 +100,6 @@ export default function ProductSelectModal({
   // Confirm selection & log output
   const handleAdd = () => {
     const selectedProductList = Object.values(selectedMap);
-    const productIdsArray = selectedProductList.map((p) => getProductId(p));
-
-    // Console logging the extracted product ObjectIds for payload verification
-    console.log("Selected Product IDs for Auction Payload:", productIdsArray);
-    console.log("Selected Product Details:", selectedProductList);
 
     onConfirmSelection(selectedProductList);
     onClose();
@@ -118,7 +114,6 @@ export default function ProductSelectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150">
-        
         {/* Modal Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div>
@@ -158,7 +153,7 @@ export default function ProductSelectModal({
             </div>
           ) : isError ? (
             <div className="py-12 text-center text-xs text-rose-500">
-              {(error as Error)?.message || "Failed to load products"}
+              {(error as Error)?.message || 'Failed to load products'}
             </div>
           ) : products.length > 0 ? (
             <div className="overflow-x-auto">
@@ -171,8 +166,8 @@ export default function ProductSelectModal({
                         onClick={handleToggleSelectAll}
                         className={`w-4 h-4 rounded-md border flex items-center justify-center cursor-pointer transition-all ${
                           isAllSelected
-                            ? "bg-[#FF5A1F] border-[#FF5A1F] text-white"
-                            : "border-slate-300 bg-white"
+                            ? 'bg-[#FF5A1F] border-[#FF5A1F] text-white'
+                            : 'border-slate-300 bg-white'
                         }`}
                         title="Select All Available"
                       >
@@ -198,20 +193,20 @@ export default function ProductSelectModal({
                         onClick={() => !isAlreadyAdded && toggleSelect(product)}
                         className={`transition-colors ${
                           isAlreadyAdded
-                            ? "opacity-40 bg-slate-50 cursor-not-allowed"
+                            ? 'opacity-40 bg-slate-50 cursor-not-allowed'
                             : isChecked
-                            ? "bg-orange-50/50 cursor-pointer"
-                            : "hover:bg-slate-50 cursor-pointer"
+                              ? 'bg-orange-50/50 cursor-pointer'
+                              : 'hover:bg-slate-50 cursor-pointer'
                         }`}
                       >
                         <td className="py-3 px-3">
                           <div
                             className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
                               isAlreadyAdded
-                                ? "bg-slate-200 border-slate-300"
+                                ? 'bg-slate-200 border-slate-300'
                                 : isChecked
-                                ? "bg-[#FF5A1F] border-[#FF5A1F] text-white"
-                                : "border-slate-300 bg-white"
+                                  ? 'bg-[#FF5A1F] border-[#FF5A1F] text-white'
+                                  : 'border-slate-300 bg-white'
                             }`}
                           >
                             {(isChecked || isAlreadyAdded) && (
@@ -241,9 +236,7 @@ export default function ProductSelectModal({
                           {product.inventoryId}
                         </td>
 
-                        <td className="py-3 px-3 text-slate-500">
-                          {product.category || "-"}
-                        </td>
+                        <td className="py-3 px-3 text-slate-500">{product.category || '-'}</td>
 
                         <td className="py-3 px-3 text-right font-bold text-slate-900">
                           ${product.price}
@@ -282,7 +275,6 @@ export default function ProductSelectModal({
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );
