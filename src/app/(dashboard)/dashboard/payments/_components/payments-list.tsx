@@ -1,8 +1,20 @@
-"use client";
+'use client';
 
-import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+import {
+  CreditCard,
+  Building2,
+  Wallet,
+  Copy,
+  Check,
+  RefreshCw,
+  DollarSign,
+  Receipt,
+  ArrowUpDown,
+} from 'lucide-react';
+import { Pagination } from '../../../../../components/pagination';
 
 interface Payment {
   date: string | null;
@@ -26,31 +38,90 @@ interface PaymentsResponse {
 
 const PAGE_LIMIT = 10;
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
 });
 
-const amountFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
+const timeFormatter = new Intl.DateTimeFormat('en-US', {
+  hour: '2-digit',
+  minute: '2-digit',
 });
 
-function formatMethod(method: string | null | undefined) {
-  if (!method) return "—";
-  if (method.toLowerCase() === "card") return "Credit Card";
+const amountFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
 
-  return method
-    .replace(/[_-]/g, " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
+// Helper component for method icons
+function PaymentMethodBadge({ method }: { method: string | null | undefined }) {
+  const normalized = method?.toLowerCase() || '';
+
+  let Icon = CreditCard;
+  let label = 'Credit Card';
+  let badgeColor = 'bg-blue-50 text-blue-700 border-blue-200';
+
+  if (normalized.includes('bank') || normalized.includes('ach') || normalized.includes('wire')) {
+    Icon = Building2;
+    label = 'Bank Transfer';
+    badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+  } else if (
+    normalized.includes('wallet') ||
+    normalized.includes('paypal') ||
+    normalized.includes('stripe')
+  ) {
+    Icon = Wallet;
+    label = 'Digital Wallet';
+    badgeColor = 'bg-purple-50 text-purple-700 border-purple-200';
+  } else if (normalized) {
+    label = normalized.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium ${badgeColor}`}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+    </span>
+  );
 }
 
-function getPageNumbers(currentPage: number, totalPages: number) {
-  const start = Math.max(1, Math.min(currentPage - 1, totalPages - 2));
-  const end = Math.min(totalPages, start + 2);
+// Copy-to-clipboard helper for Transaction ID
+function TransactionIdCell({ id }: { id: string | null }) {
+  const [copied, setCopied] = useState(false);
 
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  if (!id) {
+    return (
+      <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-400">
+        Pending / Manual
+      </span>
+    );
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="group flex items-center gap-2">
+      <span className="font-mono text-xs font-medium text-slate-700">{id}</span>
+      <button
+        onClick={handleCopy}
+        title="Copy Transaction ID"
+        className="rounded p-1 text-slate-400 opacity-0 transition-opacity hover:bg-slate-100 hover:text-slate-600 group-hover:opacity-100"
+      >
+        {copied ? (
+          <Check className="h-3.5 w-3.5 text-emerald-600" />
+        ) : (
+          <Copy className="h-3.5 w-3.5" />
+        )}
+      </button>
+    </div>
+  );
 }
 
 export default function PaymentsList() {
@@ -58,134 +129,192 @@ export default function PaymentsList() {
   const token = session?.user?.accessToken;
   const [page, setPage] = useState(1);
 
-  const { data: responseData, error, isLoading, isFetching } =
-    useQuery<PaymentsResponse>({
-      queryKey: ["payments", page, PAGE_LIMIT],
-      queryFn: async () => {
-        if (!token) throw new Error("Please login again");
+  const {
+    data: responseData,
+    error,
+    isLoading,
+    isFetching,
+  } = useQuery<PaymentsResponse>({
+    queryKey: ['payments', page, PAGE_LIMIT],
+    queryFn: async () => {
+      if (!token) throw new Error('Please login again');
 
-        const params = new URLSearchParams({
-          page: String(page),
-          limit: String(PAGE_LIMIT),
-        });
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments?${params.toString()}`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
-        const result = await response.json();
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(PAGE_LIMIT),
+      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments?${params.toString()}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const result = await response.json();
 
-        if (!response.ok || result.success === false) {
-          throw new Error(result.message || "Failed to fetch payments");
-        }
+      if (!response.ok || result.success === false) {
+        throw new Error(result.message || 'Failed to fetch payments');
+      }
 
-        return result;
-      },
-      enabled: Boolean(token),
-      placeholderData: (previousData) => previousData,
-    });
+      return result;
+    },
+    enabled: Boolean(token),
+    placeholderData: (previousData) => previousData,
+  });
 
   const payments = responseData?.data ?? [];
   const meta = responseData?.meta;
-  const currentPage = meta?.page ?? page;
   const totalPages = Math.max(meta?.totalPage ?? 1, 1);
   const total = meta?.total ?? 0;
   const limit = meta?.limit ?? PAGE_LIMIT;
-  const firstEntry = total === 0 ? 0 : (currentPage - 1) * limit + 1;
-  const lastEntry = Math.min(currentPage * limit, total);
-  const pageNumbers = getPageNumbers(currentPage, totalPages);
+  const firstEntry = total === 0 ? 0 : (page - 1) * limit + 1;
+  const lastEntry = Math.min(page * limit, total);
+  const handlePageChange = (nextPage: number) => {
+    setPage(Math.min(Math.max(nextPage, 1), totalPages));
+  };
+
+  // Calculate page total volume
+  const pageTotal = payments.reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
   return (
-    <section className="overflow-hidden rounded-lg border border-[#d7e2f2] bg-white">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left">
-          <thead>
-            <tr className="bg-[#eaf1fc] text-sm font-medium uppercase text-[#0b3b47]">
-              <th className="w-[31%] px-4 py-[18px]">Date</th>
-              <th className="w-[28%] px-4 py-[18px]">Transaction ID</th>
-              <th className="w-[25%] px-4 py-[18px]">Method</th>
-              <th className="w-[16%] px-4 py-[18px]">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#d7e2f2] text-base text-[#111111]">
-            {isLoading ? (
-              <tr>
-                <td colSpan={4} className="h-16 px-4 text-center text-sm text-slate-500">
-                  Loading payments...
-                </td>
-              </tr>
-            ) : error ? (
-              <tr>
-                <td colSpan={4} className="h-16 px-4 text-center text-sm text-red-600">
-                  {error instanceof Error ? error.message : "Unable to load payments."}
-                </td>
-              </tr>
-            ) : payments.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="h-16 px-4 text-center text-sm text-slate-500">
-                  No payments found.
-                </td>
-              </tr>
-            ) : (
-              payments.map((payment, index) => (
-                <tr
-                  key={`${payment.transactionId || "payment"}-${payment.date || index}`}
-                  className="h-[63px] transition-colors hover:bg-slate-50/70"
-                >
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {payment.date ? dateFormatter.format(new Date(payment.date)) : "—"}
-                  </td>
-                  <td className="px-4 py-4 font-medium">{payment.transactionId || "—"}</td>
-                  <td className="whitespace-nowrap px-4 py-4">{formatMethod(payment.method)}</td>
-                  <td className="whitespace-nowrap px-4 py-4">{amountFormatter.format(payment.amount)}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex min-h-[62px] flex-col items-center justify-between gap-4 border-t border-[#d7e2f2] px-4 py-3 sm:flex-row">
-        <p className="text-sm text-slate-500">
-          Showing {firstEntry} to {lastEntry} of {total} entries
-        </p>
-
-        {totalPages > 1 && (
-          <div className="flex items-center" aria-label="Payments pagination">
-            <button
-              type="button"
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-              disabled={currentPage === 1 || isFetching}
-              className="h-8 rounded-l border border-[#d7e2f2] px-3 text-sm text-slate-500 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Previous
-            </button>
-            {pageNumbers.map((pageNumber) => (
-              <button
-                type="button"
-                key={pageNumber}
-                onClick={() => setPage(pageNumber)}
-                disabled={isFetching}
-                aria-current={currentPage === pageNumber ? "page" : undefined}
-                className={`-ml-px h-8 min-w-9 border px-2 text-sm transition-colors ${
-                  currentPage === pageNumber
-                    ? "z-10 border-[#0647b5] bg-[#0647b5] text-white"
-                    : "border-[#d7e2f2] bg-white text-slate-500 hover:bg-slate-50"
-                }`}
-              >
-                {pageNumber}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
-              disabled={currentPage === totalPages || isFetching}
-              className="-ml-px h-8 rounded-r border border-[#d7e2f2] px-3 text-sm text-slate-500 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Next
-            </button>
+    <div className="space-y-4">
+      {/* Optional Top Summary Header */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+            <DollarSign className="h-5 w-5" />
           </div>
-        )}
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+              Page Volume
+            </p>
+            <p className="text-lg font-bold text-slate-900">{amountFormatter.format(pageTotal)}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <Receipt className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+              Total Transactions
+            </p>
+            <p className="text-lg font-bold text-slate-900">{total}</p>
+          </div>
+        </div>
       </div>
-    </section>
+
+      {/* Main Table Container */}
+      <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+        {/* Header Bar */}
+        <div className="flex items-center justify-between border-b border-slate-200/80 bg-slate-50/50 px-5 py-3.5">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-slate-800">Payment History</h3>
+            {isFetching && !isLoading && (
+              <RefreshCw className="h-3.5 w-3.5 animate-spin text-slate-400" />
+            )}
+          </div>
+          <span className="text-xs font-medium text-slate-500">
+            Showing {payments.length} items
+          </span>
+        </div>
+
+        {/* Table View */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-slate-200/80 bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-5 py-3.5">
+                  <span className="flex items-center gap-1">
+                    Date & Time
+                    <ArrowUpDown className="h-3 w-3 text-slate-400" />
+                  </span>
+                </th>
+                <th className="px-5 py-3.5">Transaction ID</th>
+                <th className="px-5 py-3.5">Payment Method</th>
+                <th className="px-5 py-3.5 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={4} className="h-32 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <RefreshCw className="h-5 w-5 animate-spin text-slate-400" />
+                      <span>Loading payments...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={4} className="h-28 text-center text-red-500">
+                    {error instanceof Error ? error.message : 'Unable to load payments.'}
+                  </td>
+                </tr>
+              ) : payments.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="h-28 text-center text-slate-400">
+                    No payment history recorded yet.
+                  </td>
+                </tr>
+              ) : (
+                payments.map((payment, index) => {
+                  const paymentDate = payment.date ? new Date(payment.date) : null;
+
+                  return (
+                    <tr
+                      key={`${payment.transactionId || 'payment'}-${payment.date || index}`}
+                      className="transition-colors hover:bg-slate-50/80"
+                    >
+                      {/* Date Cell */}
+                      <td className="whitespace-nowrap px-5 py-3.5">
+                        {paymentDate ? (
+                          <div className="flex flex-col">
+                            <span className="font-medium text-slate-800">
+                              {dateFormatter.format(paymentDate)}
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              {timeFormatter.format(paymentDate)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+
+                      {/* Transaction ID */}
+                      <td className="px-5 py-3.5">
+                        <TransactionIdCell id={payment.transactionId} />
+                      </td>
+
+                      {/* Method Badge */}
+                      <td className="whitespace-nowrap px-5 py-3.5">
+                        <PaymentMethodBadge method={payment.method} />
+                      </td>
+
+                      {/* Amount */}
+                      <td className="whitespace-nowrap px-5 py-3.5 text-right">
+                        <span className="font-semibold text-slate-900">
+                          {amountFormatter.format(payment.amount)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer / Pagination Section */}
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200/80 bg-slate-50/50 px-5 py-3 sm:flex-row">
+          <p className="text-xs text-slate-500">
+            Showing <span className="font-medium text-slate-700">{firstEntry}</span> to{' '}
+            <span className="font-medium text-slate-700">{lastEntry}</span> of{' '}
+            <span className="font-medium text-slate-700">{total}</span> entries
+          </p>
+
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
+        </div>
+      </section>
+    </div>
   );
 }
