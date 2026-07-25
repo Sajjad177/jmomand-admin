@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Eye, Package, Search, Truck } from 'lucide-react';
+import { Eye, Package, Truck } from 'lucide-react';
 import { Order } from '../../features/admin-dashboard/types';
 import { getOrders } from '../../features/admin-dashboard/api';
 import {
@@ -95,10 +95,6 @@ export function OrdersAdminPage() {
               <p className="mt-1 text-xs text-slate-500">
                 Showing {filtered.length} of {ordersQuery.data?.length ?? 0} orders
               </p>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-              <Search className="h-3.5 w-3.5" />
-              Search by order, customer, pickup code, or product
             </div>
           </div>
         </div>

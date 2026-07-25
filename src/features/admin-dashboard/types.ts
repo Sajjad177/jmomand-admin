@@ -45,7 +45,7 @@ export type Order = {
   customer?: AdminUser;
   items?: Array<{ product?: ProductSummary; quantity?: number; price?: number }>;
   totalAmount?: number;
-  status?: "pending" | "paid" | "failed" | "cancelled";
+  status?: 'pending' | 'paid' | 'failed' | 'cancelled';
   stripeSessionId?: string;
   stripePaymentIntentId?: string;
   paidAt?: string;
@@ -62,13 +62,22 @@ export type Invoice = {
   customer?: AdminUser;
   inventoryId?: string;
   amount?: number;
-  status?: "payment_pending" | "paid" | "payment_failed" | "void";
+  status?: 'payment_pending' | 'paid' | 'payment_failed' | 'void';
   stripePaymentIntentId?: string;
   pickupCode?: string;
   pickupQrDataUrl?: string;
   paidAt?: string;
   paymentFailureReason?: string;
   createdAt?: string;
+  totalAmount?: number;
+  subtotal: number;
+  buyerPremiumAmount: number;
+  buyerPremiumLabel: number;
+  salesTaxAmount: number;
+  stateTaxLabel: number;
+  stateTaxRate: number;
+  stateTaxState: number;
+  pickupTokenHash: string;
 };
 
 export type PickupSlot = {
