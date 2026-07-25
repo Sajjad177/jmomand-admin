@@ -1,9 +1,15 @@
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { AdminUser, Invoice } from '../features/admin-dashboard/types';
 
-import { Dialog } from '@radix-ui/react-dialog';
-import { DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog';
 
 export function PageShell({
   title,
@@ -165,22 +171,35 @@ export function RecordsTable({
 
 export function DetailDialog({
   title,
+  description,
   open,
   onOpenChange,
   children,
 }: {
   title: string;
+  description?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+      <DialogContent className="max-h-[90vh] w-full max-w-[95vw] gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl sm:max-w-6xl lg:max-w-7xl">
+        <DialogHeader className="relative border-b border-slate-100 bg-slate-50/70 px-6 py-5">
+          <DialogTitle className="pr-10 text-xl font-bold tracking-tight text-slate-950">
+            {title}
+          </DialogTitle>
+          {description && (
+            <DialogDescription className="mt-1 text-sm text-slate-500">
+              {description}
+            </DialogDescription>
+          )}
+          <DialogClose className="absolute right-5 top-5 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-white hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
         </DialogHeader>
-        {children}
+        <div className="max-h-[calc(90vh-88px)] overflow-y-auto px-6 py-5">{children}</div>
       </DialogContent>
     </Dialog>
   );
