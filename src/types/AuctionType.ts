@@ -26,7 +26,6 @@ export interface AuctionResponse {
   meta: MetaData;
 }
 
-
 export interface CreateAuctionPayload {
   products: string[];
   title: string;
@@ -46,8 +45,6 @@ export interface CreateAuctionPayload {
     durationInDays: number;
   };
 }
-
-
 
 // 1. Image interface
 export interface CloudinaryImage {
@@ -119,7 +116,7 @@ export interface AuctionItems {
   startsAt: string;
   endsAt: string;
   durationInDays: number;
-  status: "upcoming" | "active" | "completed" | "cancelled" | string;
+  status: 'upcoming' | 'active' | 'completed' | 'cancelled' | string;
   pickupSchedule: PickupSchedule;
   products: AuctionProductItem[];
   auctionProducts: AuctionProductPivot[];
@@ -153,7 +150,6 @@ export interface UseGetAllAuctionsOptions {
   enabled?: boolean;
 }
 
-
 export interface AuctionDetails {
   _id: string;
   auctionId: string;
@@ -161,7 +157,7 @@ export interface AuctionDetails {
   description: string;
   startsAt: string;
   endsAt: string;
-  status: "upcoming" | "active" | "ended" | string;
+  status: 'upcoming' | 'active' | 'ended' | string;
   products: AuctionProductItem[];
   createdAt?: string;
   updatedAt?: string;
@@ -175,7 +171,7 @@ export interface AuctionDetails {
     amount: number;
     bidderId?: string;
   };
-  auctionProducts:AuctionProductPivot[]
+  auctionProducts: AuctionProductPivot[];
 }
 
 export interface GetAuctionDetailsResponse {
@@ -189,3 +185,41 @@ export interface UseGetAuctionDetailsOptions {
   token?: string | null;
   enabled?: boolean;
 }
+
+export type ListingType = 'for_sale' | 'for_auction';
+
+export type ProductResponse = {
+  message?: string;
+  success?: boolean;
+};
+
+export type ImagePreview = {
+  id: string;
+  url: string;
+  name: string;
+  size: number;
+  type: string;
+  file?: File;
+};
+
+export type Category = {
+  category: string;
+  categoryImage?: { public_id: string; url: string } | null;
+};
+
+export type ProductDetails = {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  condition: string;
+  type: ListingType;
+  color?: string[];
+  quantity?: number;
+  price?: number;
+  manufacturer?: string;
+  day?: string;
+  reservePrice?: number;
+  images?: { public_id: string; url: string }[];
+  categoryImage?: { public_id: string; url: string } | null;
+};
