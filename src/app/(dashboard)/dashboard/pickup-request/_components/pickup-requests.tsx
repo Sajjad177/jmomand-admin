@@ -11,6 +11,7 @@ import {
   Badge,
   DetailDialog,
   formatDate,
+  formatTime,
   fullName,
   PageShell,
   TableSkeleton,
@@ -339,7 +340,7 @@ function PickupScheduleRow({
 
       <td className="px-5 py-4 align-top">
         <span className="inline-flex rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-mono text-xs font-bold text-slate-800">
-          {schedule.pickupTime || '-'}
+          {formatTime(schedule.pickupTime)}
         </span>
       </td>
 

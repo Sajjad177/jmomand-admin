@@ -121,11 +121,6 @@ export function PickupRequestDetails({
                 />
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 self-end">
-              <MiniSchedule label="Date" value={formatDate(schedule.pickupDate)} />
-              <MiniSchedule label="Hours" value={schedule.pickupTime || '-'} />
-            </div>
           </div>
         </section>
 
@@ -211,15 +206,6 @@ function ContactLine({ icon, value }: { icon: ReactNode; value: string }) {
     <div className="flex min-w-0 items-center gap-3 text-sm text-slate-800">
       <span className="text-slate-700">{icon}</span>
       <span className="truncate">{value}</span>
-    </div>
-  );
-}
-
-function MiniSchedule({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-medium text-slate-950">{value}</p>
     </div>
   );
 }
