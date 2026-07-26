@@ -37,6 +37,7 @@ export type ProductSummary = {
   condition?: string;
   manufacturer?: string;
   price?: number;
+  image: string;
 };
 
 export type Order = {

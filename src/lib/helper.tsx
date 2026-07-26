@@ -108,12 +108,31 @@ export function formatDate(value?: string | null, withTime = false) {
   return withTime ? dateTimeFormatter.format(date) : dateFormatter.format(date);
 }
 
+export function formatTime(time?: string) {
+  if (!time) return '-';
+
+  const [hours, minutes] = time.split(':').map(Number);
+
+  return new Date(0, 0, 0, hours, minutes).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
 export function statusClass(status?: string) {
-  if (['paid', 'active', 'completed', 'scheduled'].includes(status || '')) {
+  if (['paid', 'active', 'completed', 'scheduled', 'approved'].includes(status || '')) {
     return 'bg-emerald-50 text-emerald-700';
   }
-  if (['failed', 'payment_failed', 'cancelled', 'blocked', 'suspended'].includes(status || '')) {
+  if (
+    ['failed', 'payment_failed', 'cancelled', 'blocked', 'suspended', 'rejected'].includes(
+      status || '',
+    )
+  ) {
     return 'bg-red-50 text-red-700';
+  }
+  if (['requested', 'pending', 'payment_pending'].includes(status || '')) {
+    return 'bg-amber-50 text-amber-700';
   }
   return 'bg-slate-100 text-slate-700';
 }
@@ -187,16 +206,26 @@ export function DetailDialog({
   open,
   onOpenChange,
   children,
+  contentClassName = '',
+  bodyClassName = '',
 }: {
   title: string;
   description?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  contentClassName?: string;
+  bodyClassName?: string;
 }) {
+  const bodyBaseClass = bodyClassName.includes('overflow-')
+    ? 'max-h-[calc(90vh-88px)] px-6 py-5'
+    : 'max-h-[calc(90vh-88px)] overflow-y-auto px-6 py-5';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-full max-w-[95vw] gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl sm:max-w-6xl lg:max-w-7xl">
+      <DialogContent
+        className={`max-h-[90vh] w-full max-w-[95vw] gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl sm:max-w-6xl lg:max-w-7xl ${contentClassName}`}
+      >
         <DialogHeader className="relative border-b border-slate-100 bg-slate-50/70 px-6 py-5">
           <DialogTitle className="pr-10 text-xl font-bold tracking-tight text-slate-950">
             {title}
@@ -211,7 +240,9 @@ export function DetailDialog({
             <span className="sr-only">Close</span>
           </DialogClose>
         </DialogHeader>
-        <div className="max-h-[calc(90vh-88px)] overflow-y-auto px-6 py-5">{children}</div>
+        <div className={`${bodyBaseClass} ${bodyClassName}`}>
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   );
